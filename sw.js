@@ -1,4 +1,4 @@
-const CACHE = 'devran-kuyumculuk-v11';
+const CACHE = 'devran-kuyumculuk-v12';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './brand.svg', './diamond.svg', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (event) => {

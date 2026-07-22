@@ -146,7 +146,7 @@
     .voice-guide{padding:15px 16px 18px;overflow:auto;color:#d7dfdc;font-size:13px;line-height:1.55}
     .voice-guide strong{display:block;color:#f1d58d;font-size:15px;margin-bottom:8px}
     .voice-steps{margin:12px 0;padding:12px 14px;border:1px solid rgba(214,173,73,.23);border-radius:8px;background:#0c1211;color:#fff;line-height:1.7}
-    .voice-guide-link{height:42px;width:100%;border:1px solid rgba(214,173,73,.56);border-radius:8px;background:#2b2414;color:#f2d481;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:12px;font-weight:850}
+    .voice-guide-link{height:42px;width:100%;border:1px solid rgba(214,173,73,.56);border-radius:8px;background:#2b2414;color:#f2d481;display:flex;align-items:center;justify-content:center;text-decoration:none;font-family:inherit;font-size:12px;font-weight:850;cursor:pointer}
     .settings-body{padding:12px;overflow:auto}
     .setting-row{min-height:58px;padding:9px 2px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
     .setting-copy{min-width:0;flex:1}
@@ -265,9 +265,9 @@
       <div class="sheet-head"><div class="sheet-title" id="voiceGuideTitle">Ses paketi</div><button class="close-btn" type="button" data-close="voiceGuideModal" aria-label="Kapat">×</button></div>
       <div class="voice-guide">
         <strong id="voiceGuideStatus">Ses durumu kontrol ediliyor</strong>
-        <div>iPhone, web uygulamalarını doğrudan Sesler ayarının içine göndermez. Aşağıdaki yolu izleyerek bu dilin ücretsiz sistem sesini bir kez indirebilirsin:</div>
+        <div>Aşağıdaki düğme iPhone'un ses ayarını açar. Bu dilin ücretsiz sistem sesini bir kez indir:</div>
         <div class="voice-steps">Ayarlar → Erişilebilirlik → Oku ve Konuş → Sesler → Dil → İndir</div>
-        <a class="voice-guide-link" href="https://support.apple.com/en-euro/guide/iphone/iph96b214f0/ios" target="_blank" rel="noopener">Apple ses rehberini aç</a>
+        <button class="voice-guide-link" id="openVoiceSettings" type="button">iPhone ses ayarlarını aç</button>
       </div>
     </div>
   </div>
@@ -545,6 +545,15 @@
     $('voiceGuideTitle').textContent = language.tr + ' ses paketi';
     $('voiceGuideStatus').textContent = ready ? 'Bu dil için kullanılabilir telefon sesi bulundu.' : 'Bu dil için indirilen telefon sesi bulunamadı.';
     openModal('voiceGuideModal');
+  }
+
+  function openIphoneVoiceSettings() {
+    const match = navigator.userAgent.match(/OS (\d+)[_\.]/i);
+    const iosMajor = match ? Number(match[1]) : 0;
+    const settingsUrl = iosMajor >= 26
+      ? 'settings-navigation://com.apple.Settings.Accessibility/SPEECH_TITLE'
+      : 'prefs:root=ACCESSIBILITY&path=SPEECH_TITLE/QuickSpeakAccents';
+    window.location.href = settingsUrl;
   }
 
   function escapeHtml(value) {
@@ -949,6 +958,7 @@
     document.querySelectorAll('[data-close]').forEach((button)=>button.addEventListener('click',()=>closeModal(button.dataset.close)));
     document.querySelectorAll('.modal-backdrop').forEach((backdrop)=>backdrop.addEventListener('click',(event)=>{if(event.target===backdrop)closeModal(backdrop.id);}));
     $('autoSpeakSwitch').addEventListener('click',()=>{settings.autoSpeak=!settings.autoSpeak;if(!settings.autoSpeak)cancelSpeech();saveSettings();showToast(settings.autoSpeak?'Otomatik ses açık':'Otomatik ses kapalı');});
+    $('openVoiceSettings').addEventListener('click', openIphoneVoiceSettings);
     document.querySelectorAll('[data-noise]').forEach((button)=>button.addEventListener('click',()=>{settings.noiseLevel=Number(button.dataset.noise);saveSettings();showToast(button.textContent+' aktif');}));
     $('clearHistoryBtn').addEventListener('click',()=>{localStorage.removeItem(HISTORY_KEY);$('transcript').innerHTML='<div class="empty" id="emptyState"><div><div class="empty-mark"><img class="empty-brand" src="./diamond.svg" alt=""></div><strong>Görüşmeye hazır</strong><span>Konuşmak için kendi tarafınızdaki<br>mikrofon düğmesine dokunun.</span></div></div>';closeModal('settingsModal');showToast('Geçmiş temizlendi');});
     $('logoutBtn').addEventListener('click',()=>{localStorage.removeItem(AUTH_KEY);auth=null;closeModal('settingsModal');$('loginLayer').classList.add('open');});

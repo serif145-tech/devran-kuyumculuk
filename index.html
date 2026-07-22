@@ -265,9 +265,9 @@
       <div class="sheet-head"><div class="sheet-title" id="voiceGuideTitle">Ses paketi</div><button class="close-btn" type="button" data-close="voiceGuideModal" aria-label="Kapat">×</button></div>
       <div class="voice-guide">
         <strong id="voiceGuideStatus">Ses durumu kontrol ediliyor</strong>
-        <div>Aşağıdaki düğme iPhone'un ses ayarını açar. Bu dilin ücretsiz sistem sesini bir kez indir:</div>
+        <div>iPhone web uygulamalarının bu ayarı doğrudan açmasına izin vermiyor. Ayarlar uygulamasında aşağıdaki yolu izleyip bu dilin ücretsiz sistem sesini bir kez indir:</div>
         <div class="voice-steps">Ayarlar → Erişilebilirlik → Oku ve Konuş → Sesler → Dil → İndir</div>
-        <button class="voice-guide-link" id="openVoiceSettings" type="button">iPhone ses ayarlarını aç</button>
+        <button class="voice-guide-link" id="closeVoiceGuide" type="button">Tamam</button>
       </div>
     </div>
   </div>
@@ -545,15 +545,6 @@
     $('voiceGuideTitle').textContent = language.tr + ' ses paketi';
     $('voiceGuideStatus').textContent = ready ? 'Bu dil için kullanılabilir telefon sesi bulundu.' : 'Bu dil için indirilen telefon sesi bulunamadı.';
     openModal('voiceGuideModal');
-  }
-
-  function openIphoneVoiceSettings() {
-    const match = navigator.userAgent.match(/OS (\d+)[_\.]/i);
-    const iosMajor = match ? Number(match[1]) : 0;
-    const settingsUrl = iosMajor >= 26
-      ? 'settings-navigation://com.apple.Settings.Accessibility/SPEECH_TITLE'
-      : 'prefs:root=ACCESSIBILITY&path=SPEECH_TITLE/QuickSpeakAccents';
-    window.location.href = settingsUrl;
   }
 
   function escapeHtml(value) {
@@ -868,7 +859,6 @@
       if (!targetText) throw new Error('Çeviri boş döndü');
       const turn = {sourceText,targetText,sourceCode:job.sourceLanguage.code,targetCode:job.targetLanguage.code,ts:Date.now()};
       renderTurn(turn,true);
-      saveHistory(turn);
       setStatus('Çeviri tamamlandı', 'done');
       if (settings.autoSpeak) await speakPhoneTts(targetText,job.targetLanguage);
     } catch (error) {
@@ -901,16 +891,6 @@
     card.innerHTML='<div class="turn-head"><span class="flag">!</span><span>İşlem tamamlanamadı</span></div><div class="turn-target">'+escapeHtml(message)+'</div>';
     $('transcript').appendChild(card);$('transcript').scrollTop=$('transcript').scrollHeight;
   }
-
-  function readHistory() {
-    try { const value=JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');return Array.isArray(value)?value.slice(-30):[]; } catch { return []; }
-  }
-
-  function saveHistory(turn) {
-    const history=readHistory();history.push(turn);localStorage.setItem(HISTORY_KEY,JSON.stringify(history.slice(-30)));
-  }
-
-  function restoreHistory() { readHistory().forEach((turn)=>renderTurn(turn,false)); }
 
   async function requestWakeLock() { try { if('wakeLock'in navigator)wakeLock=await navigator.wakeLock.request('screen'); } catch {} }
   function releaseWakeLock(){try{wakeLock?.release();}catch{}wakeLock=null;}
@@ -958,7 +938,7 @@
     document.querySelectorAll('[data-close]').forEach((button)=>button.addEventListener('click',()=>closeModal(button.dataset.close)));
     document.querySelectorAll('.modal-backdrop').forEach((backdrop)=>backdrop.addEventListener('click',(event)=>{if(event.target===backdrop)closeModal(backdrop.id);}));
     $('autoSpeakSwitch').addEventListener('click',()=>{settings.autoSpeak=!settings.autoSpeak;if(!settings.autoSpeak)cancelSpeech();saveSettings();showToast(settings.autoSpeak?'Otomatik ses açık':'Otomatik ses kapalı');});
-    $('openVoiceSettings').addEventListener('click', openIphoneVoiceSettings);
+    $('closeVoiceGuide').addEventListener('click',()=>closeModal('voiceGuideModal'));
     document.querySelectorAll('[data-noise]').forEach((button)=>button.addEventListener('click',()=>{settings.noiseLevel=Number(button.dataset.noise);saveSettings();showToast(button.textContent+' aktif');}));
     $('clearHistoryBtn').addEventListener('click',()=>{localStorage.removeItem(HISTORY_KEY);$('transcript').innerHTML='<div class="empty" id="emptyState"><div><div class="empty-mark"><img class="empty-brand" src="./diamond.svg" alt=""></div><strong>Görüşmeye hazır</strong><span>Konuşmak için kendi tarafınızdaki<br>mikrofon düğmesine dokunun.</span></div></div>';closeModal('settingsModal');showToast('Geçmiş temizlendi');});
     $('logoutBtn').addEventListener('click',()=>{localStorage.removeItem(AUTH_KEY);auth=null;closeModal('settingsModal');$('loginLayer').classList.add('open');});
@@ -970,7 +950,8 @@
   }
 
   async function boot(){
-    registerEvents();updateLanguageUi();syncSettingsUi();restoreHistory();
+    localStorage.removeItem(HISTORY_KEY);
+    registerEvents();updateLanguageUi();syncSettingsUi();
     if('speechSynthesis'in window){try{speechSynthesis.getVoices();speechSynthesis.addEventListener?.('voiceschanged',()=>{currentVoices();if($('languageModal').classList.contains('open'))renderLanguageList($('languageSearch').value);});}catch{}}
     if(auth){try{await refreshAuth(false);$('loginLayer').classList.remove('open');setStatus('Mikrofon hazır','idle');}catch{localStorage.removeItem(AUTH_KEY);auth=null;}}
     if(!auth)$('loginLayer').classList.add('open');

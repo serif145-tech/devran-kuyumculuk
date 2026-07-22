@@ -328,6 +328,7 @@
   const HISTORY_KEY = 'devran_kuyumculuk_history_v1';
   const SETTINGS_KEY = 'devran_kuyumculuk_settings_v1';
   const CUSTOMER_LANGUAGE_KEY = 'devran_customer_language_v1';
+  const MIC_RESUME_LANGUAGE_KEY = 'devran_mic_resume_language_v1';
   const PTT_SILENCE_MS = 2000;
   const MIC_NO_SPEECH_MS = 6000;
   const MIC_RECOVERY_WINDOW_MS = 30000;
@@ -612,7 +613,6 @@
     }
     recordingStarting = true;
     cancelSpeech();
-    unlockPhoneTts();
     activeSourceLanguage = sourceLanguage;
     activeTargetLanguage = targetLanguage;
     activeMicButton = button;
@@ -661,7 +661,11 @@
     if (microphoneRestarting) return;
     microphoneRestarting = true;
     setStatus('Mikrofon yeniden başlatılıyor', 'working');
-    try { sessionStorage.setItem('devran_mic_restarted', '1'); } catch {}
+    try {
+      localStorage.setItem(CUSTOMER_LANGUAGE_KEY, customerLanguage.code);
+      sessionStorage.setItem(MIC_RESUME_LANGUAGE_KEY, customerLanguage.code);
+      sessionStorage.setItem('devran_mic_restarted', '1');
+    } catch {}
     cancelSpeech();
     try {
       if (recorder && recorder.state === 'recording') {
@@ -991,7 +995,8 @@
     $('autoSpeakSwitch').addEventListener('click',()=>{settings.autoSpeak=!settings.autoSpeak;if(!settings.autoSpeak)cancelSpeech();saveSettings();showToast(settings.autoSpeak?'Otomatik ses açık':'Otomatik ses kapalı');});
     $('closeVoiceGuide').addEventListener('click',()=>closeModal('voiceGuideModal'));
     $('clearHistoryBtn').addEventListener('click',()=>{localStorage.removeItem(HISTORY_KEY);$('transcript').innerHTML='<div class="empty" id="emptyState"><div><div class="empty-mark"><img class="empty-brand" src="./diamond.svg" alt=""></div><strong>Görüşmeye hazır</strong><span>Konuşmak için kendi tarafınızdaki<br>mikrofon düğmesine dokunun.</span></div></div>';closeModal('settingsModal');showToast('Geçmiş temizlendi');});
-    $('loginForm').addEventListener('submit',async(event)=>{event.preventDefault();const button=$('loginBtn'),error=$('loginError');button.disabled=true;button.textContent='Giriş yapılıyor...';error.textContent='';try{await signIn($('passwordInput').value);$('passwordInput').value='';$('loginLayer').classList.remove('open');setStatus('Mikrofon hazır','idle');prepareMicrophoneStream().catch(()=>{});}catch(e){error.textContent=String(e&&e.message||e||'Giriş başarısız').replace(/INVALID_LOGIN_CREDENTIALS|INVALID_PASSWORD|EMAIL_NOT_FOUND/g,'Şifre hatalı');}finally{button.disabled=false;button.textContent='Giriş yap';}});
+    $('loginForm').addEventListener('submit',async(event)=>{event.preventDefault();unlockPhoneTts();prepareMicrophoneStream().catch(()=>{});const button=$('loginBtn'),error=$('loginError');button.disabled=true;button.textContent='Giriş yapılıyor...';error.textContent='';try{await signIn($('passwordInput').value);$('passwordInput').value='';$('loginLayer').classList.remove('open');setStatus('Mikrofon hazır','idle');prepareMicrophoneStream().catch(()=>{});}catch(e){error.textContent=String(e&&e.message||e||'Giriş başarısız').replace(/INVALID_LOGIN_CREDENTIALS|INVALID_PASSWORD|EMAIL_NOT_FOUND/g,'Şifre hatalı');}finally{button.disabled=false;button.textContent='Giriş yap';}});
+    document.addEventListener('pointerdown',(event)=>{if(!event.target.closest('#shopMic,#customerMic'))unlockPhoneTts();},{capture:true,passive:true});
     document.addEventListener('pointerdown',()=>{if(pendingSpeech&&Date.now()-pendingSpeech.queuedAt<60000){const item=pendingSpeech;pendingSpeech=null;speakPhoneTts(item.text,item.language,true);}},{capture:true,passive:true});
     document.addEventListener('click',(event)=>{if(event.target.closest('button'))playClick();},{capture:true,passive:true});
     document.addEventListener('visibilitychange',()=>{if(!document.hidden&&auth){refreshAuth(false).catch(()=>{});prepareMicrophoneStream().catch(()=>{});}});
@@ -1000,6 +1005,14 @@
 
   async function boot(){
     localStorage.removeItem(HISTORY_KEY);
+    try {
+      const resumeLanguage = findLanguage(sessionStorage.getItem(MIC_RESUME_LANGUAGE_KEY));
+      if (resumeLanguage) {
+        customerLanguage = resumeLanguage;
+        localStorage.setItem(CUSTOMER_LANGUAGE_KEY, resumeLanguage.code);
+      }
+      sessionStorage.removeItem(MIC_RESUME_LANGUAGE_KEY);
+    } catch {}
     registerEvents();updateLanguageUi();syncSettingsUi();
     if('speechSynthesis'in window){try{speechSynthesis.getVoices();speechSynthesis.addEventListener?.('voiceschanged',()=>{currentVoices();if($('languageModal').classList.contains('open'))renderLanguageList($('languageSearch').value);});}catch{}}
     if(auth){try{await refreshAuth(false);$('loginLayer').classList.remove('open');setStatus('Mikrofon hazır','idle');prepareMicrophoneStream().catch(()=>{});}catch{localStorage.removeItem(AUTH_KEY);auth=null;}}

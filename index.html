@@ -386,7 +386,6 @@
   let recSilentSince = 0;
   let recLastVisualAt = 0;
   let noSpeechStops = [];
-  let micNeedsFreshStart = false;
   let activeMicButton = null;
   let activeSourceLanguage = null;
   let activeTargetLanguage = null;
@@ -609,10 +608,6 @@
       return;
     }
     recordingStarting = true;
-    if (micNeedsFreshStart) {
-      micNeedsFreshStart = false;
-      await new Promise((resolve) => setTimeout(resolve, MIC_OPEN_RETRY_MS));
-    }
     cancelSpeech();
     unlockPhoneTts();
     activeSourceLanguage = sourceLanguage;
@@ -624,8 +619,8 @@
     button.parentElement?.classList.add('has-active');
     setStatus(activeListenText, 'listening');
     try {
-      await refreshAuth(false);
-      await requestWakeLock();
+      refreshAuth(false).catch(()=>{});
+      requestWakeLock().catch(()=>{});
       const Ctx = window.AudioContext || window.webkitAudioContext;
       if (!Ctx) throw new Error('Bu tarayıcı ses kaydını desteklemiyor');
       if (!navigator.mediaDevices?.getUserMedia) throw new Error('Bu tarayıcı mikrofon erişimini desteklemiyor');
@@ -664,9 +659,9 @@
     noSpeechStops.push(now);
     if (noSpeechStops.length < 2) return false;
     noSpeechStops = [];
-    micNeedsFreshStart = true;
-    setStatus('Mikrofon yenilendi', 'done');
-    setTimeout(() => { if (!recorder && !processing) setStatus('Mikrofon hazır', 'idle'); }, 900);
+    try { sessionStorage.setItem('devran_mic_restarted', '1'); } catch {}
+    setStatus('Mikrofon yeniden başlatılıyor', 'working');
+    setTimeout(() => window.location.reload(), 260);
     return true;
   }
 
@@ -952,6 +947,13 @@
     if('speechSynthesis'in window){try{speechSynthesis.getVoices();speechSynthesis.addEventListener?.('voiceschanged',()=>{currentVoices();if($('languageModal').classList.contains('open'))renderLanguageList($('languageSearch').value);});}catch{}}
     if(auth){try{await refreshAuth(false);$('loginLayer').classList.remove('open');setStatus('Mikrofon hazır','idle');}catch{localStorage.removeItem(AUTH_KEY);auth=null;}}
     if(!auth)$('loginLayer').classList.add('open');
+    try {
+      if(sessionStorage.getItem('devran_mic_restarted')==='1'){
+        sessionStorage.removeItem('devran_mic_restarted');
+        setStatus('Mikrofon yenilendi','done');
+        setTimeout(()=>{if(!recorder&&!processing)setStatus('Mikrofon hazır','idle');},900);
+      }
+    } catch {}
     if('serviceWorker'in navigator&&location.protocol.startsWith('http')){
       let reloadingForUpdate=false;
       navigator.serviceWorker.addEventListener('controllerchange',()=>{

@@ -369,6 +369,9 @@
   let authRefreshPromise = null;
   let recorder = null;
   let recStream = null;
+  let standbyMicStream = null;
+  let standbyMicPromise = null;
+  let microphoneRestarting = false;
   let recAudioCtx = null;
   let recNode = null;
   let recProcessor = null;
@@ -615,9 +618,7 @@
     activeMicButton = button;
     activeListenText = sourceLanguage.tr + ' dinleniyor';
     resetRecordingMetrics();
-    button.classList.add('recording');
-    button.parentElement?.classList.add('has-active');
-    setStatus(activeListenText, 'listening');
+    setStatus('Mikrofon hazırlanıyor', 'working');
     try {
       refreshAuth(false).catch(()=>{});
       requestWakeLock().catch(()=>{});
@@ -626,7 +627,7 @@
       if (!navigator.mediaDevices?.getUserMedia) throw new Error('Bu tarayıcı mikrofon erişimini desteklemiyor');
       recAudioCtx = new Ctx();
       if (recAudioCtx.state === 'suspended') await recAudioCtx.resume();
-      recStream = await requestMicrophoneStream();
+      recStream = await prepareMicrophoneStream();
       recNode = recAudioCtx.createMediaStreamSource(recStream);
       recSampleRate = recAudioCtx.sampleRate || 48000;
       recProcessor = recAudioCtx.createScriptProcessor(2048,1,1);
@@ -640,6 +641,9 @@
       recProcessor.onaudioprocess = handleAudioProcess;
       recorder.onstop = finishRecording;
       recorder.start(120);
+      button.classList.add('recording');
+      button.parentElement?.classList.add('has-active');
+      setStatus(activeListenText, 'listening');
     } catch (error) {
       cleanupRecording();
       setStatus('Mikrofon açılamadı', 'error');
@@ -653,15 +657,46 @@
 
   function resetNoSpeechStops() { noSpeechStops = []; }
 
+  async function restartApplicationForMicrophone() {
+    if (microphoneRestarting) return;
+    microphoneRestarting = true;
+    setStatus('Mikrofon yeniden başlatılıyor', 'working');
+    try { sessionStorage.setItem('devran_mic_restarted', '1'); } catch {}
+    cancelSpeech();
+    try {
+      if (recorder && recorder.state === 'recording') {
+        recorder.onstop = null;
+        recorder.stop();
+      }
+    } catch {}
+    try { if (recProcessor) { recProcessor.onaudioprocess = null; recProcessor.disconnect(); } } catch {}
+    try { if (recGain) recGain.disconnect(); } catch {}
+    try { if (recNode) recNode.disconnect(); } catch {}
+    try {
+      if (standbyMicStream) standbyMicStream.getTracks().forEach((track) => track.stop());
+    } catch {}
+    standbyMicStream = null;
+    standbyMicPromise = null;
+    try {
+      if (recStream) recStream.getTracks().forEach((track) => track.stop());
+    } catch {}
+    recStream = null;
+    try {
+      if (recAudioCtx && recAudioCtx.state !== 'closed') await recAudioCtx.close();
+    } catch {}
+    recAudioCtx = null;
+    releaseWakeLock();
+    await new Promise((resolve) => setTimeout(resolve, 180));
+    window.location.replace('./restart.html?mic=' + Date.now());
+  }
+
   function noteNoSpeechStop() {
     const now = Date.now();
     noSpeechStops = noSpeechStops.filter((time) => now - time < MIC_RECOVERY_WINDOW_MS);
     noSpeechStops.push(now);
     if (noSpeechStops.length < 2) return false;
     noSpeechStops = [];
-    try { sessionStorage.setItem('devran_mic_restarted', '1'); } catch {}
-    setStatus('Mikrofon yeniden başlatılıyor', 'working');
-    setTimeout(() => window.location.reload(), 260);
+    restartApplicationForMicrophone();
     return true;
   }
 
@@ -669,6 +704,26 @@
     const name = String(error?.name || '');
     const message = String(error?.message || '');
     return /NotReadableError|AbortError|TrackStartError|InvalidStateError|Could not start|device.*busy/i.test(name + ' ' + message);
+  }
+
+  function microphoneStreamIsReady(stream) {
+    if (!stream || !stream.active) return false;
+    const track = stream.getAudioTracks?.()[0];
+    return !!track && track.readyState === 'live';
+  }
+
+  async function prepareMicrophoneStream() {
+    if (microphoneStreamIsReady(standbyMicStream)) return standbyMicStream;
+    if (standbyMicPromise) return standbyMicPromise;
+    standbyMicPromise = requestMicrophoneStream().then((stream) => {
+      standbyMicStream = stream;
+      const track = stream.getAudioTracks?.()[0];
+      if (track) track.addEventListener('ended', () => {
+        if (standbyMicStream === stream) standbyMicStream = null;
+      }, {once:true});
+      return stream;
+    }).finally(() => { standbyMicPromise = null; });
+    return standbyMicPromise;
   }
 
   async function requestMicrophoneStream() {
@@ -792,7 +847,7 @@
     try { if(recProcessor){recProcessor.onaudioprocess=null;recProcessor.disconnect();} } catch {}
     try { if(recGain)recGain.disconnect(); } catch {}
     try { if(recNode)recNode.disconnect(); } catch {}
-    try { if(recStream)recStream.getTracks().forEach((track) => track.stop()); } catch {}
+    try { if(recStream && recStream !== standbyMicStream)recStream.getTracks().forEach((track) => track.stop()); } catch {}
     try { if(recAudioCtx && recAudioCtx.state !== 'closed')recAudioCtx.close(); } catch {}
     if (activeMicButton) {
       activeMicButton.classList.remove('recording','counting');
@@ -924,6 +979,8 @@
   }
 
   function registerEvents(){
+    $('shopMic').addEventListener('pointerdown',()=>{prepareMicrophoneStream().catch(()=>{});},{passive:true});
+    $('customerMic').addEventListener('pointerdown',()=>{prepareMicrophoneStream().catch(()=>{});},{passive:true});
     $('shopMic').addEventListener('click',()=>startRecording(TURKISH,customerLanguage,$('shopMic')));
     $('customerMic').addEventListener('click',()=>startRecording(customerLanguage,TURKISH,$('customerMic')));
     $('customerLanguageBtn').addEventListener('click',()=>openModal('languageModal'));
@@ -934,18 +991,18 @@
     $('autoSpeakSwitch').addEventListener('click',()=>{settings.autoSpeak=!settings.autoSpeak;if(!settings.autoSpeak)cancelSpeech();saveSettings();showToast(settings.autoSpeak?'Otomatik ses açık':'Otomatik ses kapalı');});
     $('closeVoiceGuide').addEventListener('click',()=>closeModal('voiceGuideModal'));
     $('clearHistoryBtn').addEventListener('click',()=>{localStorage.removeItem(HISTORY_KEY);$('transcript').innerHTML='<div class="empty" id="emptyState"><div><div class="empty-mark"><img class="empty-brand" src="./diamond.svg" alt=""></div><strong>Görüşmeye hazır</strong><span>Konuşmak için kendi tarafınızdaki<br>mikrofon düğmesine dokunun.</span></div></div>';closeModal('settingsModal');showToast('Geçmiş temizlendi');});
-    $('loginForm').addEventListener('submit',async(event)=>{event.preventDefault();const button=$('loginBtn'),error=$('loginError');button.disabled=true;button.textContent='Giriş yapılıyor...';error.textContent='';try{await signIn($('passwordInput').value);$('passwordInput').value='';$('loginLayer').classList.remove('open');setStatus('Mikrofon hazır','idle');}catch(e){error.textContent=String(e&&e.message||e||'Giriş başarısız').replace(/INVALID_LOGIN_CREDENTIALS|INVALID_PASSWORD|EMAIL_NOT_FOUND/g,'Şifre hatalı');}finally{button.disabled=false;button.textContent='Giriş yap';}});
+    $('loginForm').addEventListener('submit',async(event)=>{event.preventDefault();const button=$('loginBtn'),error=$('loginError');button.disabled=true;button.textContent='Giriş yapılıyor...';error.textContent='';try{await signIn($('passwordInput').value);$('passwordInput').value='';$('loginLayer').classList.remove('open');setStatus('Mikrofon hazır','idle');prepareMicrophoneStream().catch(()=>{});}catch(e){error.textContent=String(e&&e.message||e||'Giriş başarısız').replace(/INVALID_LOGIN_CREDENTIALS|INVALID_PASSWORD|EMAIL_NOT_FOUND/g,'Şifre hatalı');}finally{button.disabled=false;button.textContent='Giriş yap';}});
     document.addEventListener('pointerdown',()=>{if(pendingSpeech&&Date.now()-pendingSpeech.queuedAt<60000){const item=pendingSpeech;pendingSpeech=null;speakPhoneTts(item.text,item.language,true);}},{capture:true,passive:true});
     document.addEventListener('click',(event)=>{if(event.target.closest('button'))playClick();},{capture:true,passive:true});
-    document.addEventListener('visibilitychange',()=>{if(!document.hidden&&auth)refreshAuth(false).catch(()=>{});});
-    window.addEventListener('beforeunload',()=>{stopRecording();releaseWakeLock();});
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden&&auth){refreshAuth(false).catch(()=>{});prepareMicrophoneStream().catch(()=>{});}});
+    window.addEventListener('beforeunload',()=>{stopRecording();try{standbyMicStream?.getTracks().forEach((track)=>track.stop());}catch{}releaseWakeLock();});
   }
 
   async function boot(){
     localStorage.removeItem(HISTORY_KEY);
     registerEvents();updateLanguageUi();syncSettingsUi();
     if('speechSynthesis'in window){try{speechSynthesis.getVoices();speechSynthesis.addEventListener?.('voiceschanged',()=>{currentVoices();if($('languageModal').classList.contains('open'))renderLanguageList($('languageSearch').value);});}catch{}}
-    if(auth){try{await refreshAuth(false);$('loginLayer').classList.remove('open');setStatus('Mikrofon hazır','idle');}catch{localStorage.removeItem(AUTH_KEY);auth=null;}}
+    if(auth){try{await refreshAuth(false);$('loginLayer').classList.remove('open');setStatus('Mikrofon hazır','idle');prepareMicrophoneStream().catch(()=>{});}catch{localStorage.removeItem(AUTH_KEY);auth=null;}}
     if(!auth)$('loginLayer').classList.add('open');
     try {
       if(sessionStorage.getItem('devran_mic_restarted')==='1'){

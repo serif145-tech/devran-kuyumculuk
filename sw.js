@@ -1,5 +1,5 @@
-const CACHE = 'devran-kuyumculuk-v16';
-const ASSETS = ['./', './index.html', './manifest.webmanifest', './brand.svg', './diamond.svg', './icon-192.png', './icon-512.png'];
+const CACHE = 'devran-kuyumculuk-v17';
+const ASSETS = ['./', './index.html', './restart.html', './manifest.webmanifest', './brand.svg', './diamond.svg', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)));

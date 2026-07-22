@@ -37,13 +37,14 @@
     button,input{font:inherit;letter-spacing:0}
     button{color:inherit}
     .app{width:min(100%,920px);height:100vh;height:100dvh;max-width:100vw;margin:0 auto;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;position:relative;border:1px solid rgba(214,173,73,.2);box-shadow:0 0 36px rgba(0,0,0,.34)}
-    .topbar{flex:0 0 auto;padding:calc(11px + var(--safe-top)) 16px 11px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(214,173,73,.25);background:linear-gradient(180deg,#0b100f 0%,#080d0c 100%)}
-    .brand-emblem{width:49px;height:49px;display:grid;place-items:center;flex:0 0 auto;position:relative;border:1px solid rgba(218,177,75,.55);border-radius:50%;background:rgba(13,18,16,.72);box-shadow:0 0 0 4px rgba(214,173,73,.035),0 0 22px rgba(214,173,73,.12);animation:brandAura 3.4s ease-in-out infinite}
-    .brand-emblem::after{content:"";position:absolute;right:1px;top:2px;width:5px;height:5px;background:#fff0aa;transform:rotate(45deg);box-shadow:0 0 11px rgba(255,226,128,.9);animation:brandSpark 3.4s ease-in-out infinite}
-    .brand-logo{width:41px;height:41px;display:block;filter:drop-shadow(0 0 8px rgba(233,190,76,.38))}
-    .brand-copy{min-width:0;flex:1}
-    .brand-name{font-family:"Bodoni 72",Didot,Georgia,"Times New Roman",serif;font-size:19px;font-weight:700;color:#f5d98b;background:linear-gradient(180deg,#fff1bd 0%,#d5a83e 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 0 22px rgba(214,173,73,.12)}
-    .icon-btn{width:40px;height:40px;border:1px solid rgba(214,173,73,.48);border-radius:8px;background:#111816;display:grid;place-items:center;cursor:pointer;box-shadow:inset 0 1px rgba(255,255,255,.025),0 8px 20px rgba(0,0,0,.22);transition:transform .14s ease,background .14s ease,border-color .14s ease}
+    .topbar{flex:0 0 auto;padding:calc(10px + var(--safe-top)) 16px 10px;display:grid;grid-template-columns:50px minmax(0,1fr) 50px;align-items:center;gap:10px;border-bottom:1px solid rgba(214,173,73,.3);background:linear-gradient(180deg,#0d1412 0%,#080d0c 100%);box-shadow:0 8px 24px rgba(0,0,0,.16)}
+    .brand-emblem{width:47px;height:47px;display:grid;place-items:center;position:relative;border:1px solid rgba(232,192,86,.62);border-radius:50%;background:radial-gradient(circle,rgba(226,181,61,.1),transparent 67%);box-shadow:inset 0 0 15px rgba(245,205,97,.07),0 0 20px rgba(214,173,73,.13);isolation:isolate;animation:brandAura 3.8s ease-in-out infinite}
+    .brand-emblem::before{content:"";position:absolute;inset:-4px;border-radius:50%;padding:1px;background:conic-gradient(from 25deg,transparent 0 34%,rgba(255,231,154,.8) 45%,transparent 56% 100%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:brandOrbit 5.5s linear infinite;z-index:-1}
+    .brand-emblem::after{content:"";position:absolute;right:0;top:1px;width:5px;height:5px;border-radius:50%;background:#fff4bd;box-shadow:0 0 12px rgba(255,226,128,.95);animation:brandSpark 3.8s ease-in-out infinite}
+    .brand-logo{width:39px;height:39px;display:block;background:transparent;filter:drop-shadow(0 0 10px rgba(240,196,78,.5))}
+    .brand-copy{min-width:0;text-align:center;padding-inline:4px}
+    .brand-name{font-family:"Avenir Next",Manrope,"Segoe UI Variable Display","Segoe UI",sans-serif;font-size:19px;font-weight:800;color:#f8df93;background:linear-gradient(180deg,#fff7d5 0%,#f0cd72 46%,#bd8420 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 0 18px rgba(238,191,65,.22);filter:drop-shadow(0 1px 7px rgba(214,173,73,.16))}
+    .icon-btn{width:40px;height:40px;justify-self:end;border:1px solid rgba(214,173,73,.48);border-radius:8px;background:#111816;display:grid;place-items:center;cursor:pointer;box-shadow:inset 0 1px rgba(255,255,255,.025),0 8px 20px rgba(0,0,0,.22);transition:transform .14s ease,background .14s ease,border-color .14s ease}
     .icon-btn:active{transform:scale(.92);background:#202b28}
     .icon-btn svg{width:20px;height:20px;stroke:var(--gold-soft);stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
     .language-band{flex:0 0 auto;padding:12px 15px;display:grid;grid-template-columns:minmax(0,1fr) 42px minmax(0,1fr);align-items:center;gap:10px;border-bottom:1px solid rgba(214,173,73,.16);background:#0a100f}
@@ -129,8 +130,10 @@
     .modal-backdrop,.login-layer{position:fixed;inset:0;width:100%;max-width:100vw;height:100vh;height:100dvh;z-index:50;background:rgba(2,6,5,.74);backdrop-filter:blur(9px);display:none;align-items:flex-end;justify-content:center;padding:16px;overflow:hidden}
     .modal-backdrop.open,.login-layer.open{display:flex}
     .sheet{width:min(100%,620px);max-height:min(82dvh,720px);border:1px solid rgba(214,173,73,.32);border-radius:10px;background:#101715;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
-    #settingsModal{align-items:flex-start;padding-top:calc(12px + var(--safe-top))}
-    #settingsModal.open .sheet{animation:settingsDrop .22s cubic-bezier(.2,.75,.28,1) both}
+    #settingsModal{align-items:flex-start;justify-content:center;padding:calc(68px + var(--safe-top)) 12px 12px;background:rgba(2,6,5,.28);backdrop-filter:blur(3px)}
+    .settings-anchor{width:min(100%,920px);display:flex;justify-content:flex-end;pointer-events:none}
+    #settingsModal .settings-sheet{width:min(300px,calc(100vw - 24px));max-height:none;border-color:rgba(226,184,74,.42);border-radius:10px;background:linear-gradient(180deg,#131c19,#0e1614);pointer-events:auto;box-shadow:0 18px 44px rgba(0,0,0,.48),0 0 0 1px rgba(255,255,255,.025)}
+    #settingsModal.open .settings-sheet{animation:settingsDrop .2s cubic-bezier(.2,.75,.28,1) both}
     .sheet-head{display:flex;align-items:center;gap:10px;padding:14px;border-bottom:1px solid var(--line)}
     .sheet-title{font-size:15px;font-weight:850;flex:1}
     .close-btn{width:36px;height:36px;border:0;border-radius:50%;background:#202a27;color:#fff;font-size:20px;cursor:pointer}
@@ -153,8 +156,8 @@
     .voice-guide strong{display:block;color:#f1d58d;font-size:15px;margin-bottom:8px}
     .voice-steps{margin:12px 0;padding:12px 14px;border:1px solid rgba(214,173,73,.23);border-radius:8px;background:#0c1211;color:#fff;line-height:1.7}
     .voice-guide-link{height:42px;width:100%;border:1px solid rgba(214,173,73,.56);border-radius:8px;background:#2b2414;color:#f2d481;display:flex;align-items:center;justify-content:center;text-decoration:none;font-family:inherit;font-size:12px;font-weight:850;cursor:pointer}
-    .settings-body{padding:6px 14px 10px;overflow:auto}
-    .setting-row{min-height:62px;padding:10px 2px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+    .settings-body{padding:4px 12px 8px;overflow:auto}
+    .setting-row{min-height:52px;padding:7px 2px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
     .setting-row:last-child{border-bottom:0}
     .setting-copy{min-width:0;flex:1}
     .setting-name{font-size:13px;font-weight:800}
@@ -178,7 +181,8 @@
     .toast{position:fixed;left:50%;bottom:calc(138px + var(--safe-bottom));z-index:100;transform:translate(-50%,18px);opacity:0;pointer-events:none;max-width:min(88vw,460px);padding:10px 14px;border:1px solid var(--line);border-radius:8px;background:#18211f;color:#fff;font-size:12px;font-weight:750;box-shadow:var(--shadow);transition:opacity .18s ease,transform .18s ease;text-align:center}
     .toast.show{opacity:1;transform:translate(-50%,0)}
     @keyframes spin{to{transform:rotate(360deg)}}
-    @keyframes settingsDrop{from{opacity:0;transform:translateY(-18px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+    @keyframes settingsDrop{from{opacity:0;transform:translate(8px,-9px) scale(.975)}to{opacity:1;transform:translate(0,0) scale(1)}}
+    @keyframes brandOrbit{to{transform:rotate(360deg)}}
     @keyframes brandAura{0%,100%{box-shadow:0 0 0 4px rgba(214,173,73,.03),0 0 15px rgba(214,173,73,.1)}50%{box-shadow:0 0 0 5px rgba(214,173,73,.055),0 0 25px rgba(214,173,73,.2)}}
     @keyframes brandSpark{0%,58%,100%{opacity:.2;transform:rotate(45deg) scale(.55)}68%{opacity:1;transform:rotate(135deg) scale(1.25)}80%{opacity:.42;transform:rotate(225deg) scale(.8)}}
     @keyframes micPulse{0%{transform:scale(.82);opacity:0}34%{opacity:.22}100%{transform:scale(1.2);opacity:0}}
@@ -199,7 +203,7 @@
     }
     @media (max-width:699px){
       .modal-backdrop,.login-layer{padding:8px;padding-bottom:calc(8px + var(--safe-bottom))}
-      #settingsModal{padding-top:calc(8px + var(--safe-top));padding-bottom:8px}
+      #settingsModal{padding-top:calc(64px + var(--safe-top));padding-bottom:8px}
       .language-sheet{height:calc(100dvh - 16px - var(--safe-bottom));min-height:0;border-radius:12px 12px 7px 7px}
       .sheet-head{padding:11px 12px}.search-wrap{padding:8px 10px}.language-list{padding:4px}
     }
@@ -282,7 +286,8 @@
   </div>
 
   <div class="modal-backdrop" id="settingsModal" role="dialog" aria-modal="true" aria-label="Ayarlar">
-    <div class="sheet">
+    <div class="settings-anchor">
+    <div class="sheet settings-sheet">
       <div class="sheet-head"><div class="sheet-title">Ayarlar</div><button class="close-btn" type="button" data-close="settingsModal" aria-label="Kapat">×</button></div>
       <div class="settings-body">
         <div class="setting-row">
@@ -294,7 +299,7 @@
           <button class="danger-btn" id="clearHistoryBtn" type="button">Temizle</button>
         </div>
       </div>
-    </div>
+    </div></div>
   </div>
 
   <div class="login-layer open" id="loginLayer">
@@ -312,8 +317,7 @@
   <script>
   'use strict';
 
-  // Ses hattı AskViet PWA Bas-Konuş sisteminden ayrıştırıldı: aynı PCM kayıt,
-  // sessizlik sayacı, gürültü profilleri, güvenli kapanış ve telefon TTS akışı.
+  // Ses hattı: PCM kayıt, sessizlik sayacı, güvenli kapanış ve telefon TTS akışı.
   const API_URL = 'https://asia-southeast1-askviet-9c4ea.cloudfunctions.net/devranApi';
   const FIREBASE_WEB_API_KEY = 'AIzaSyAB3bpvACQhlX6taqT0C0veJP_PrKR1WqQ';
   const FIREBASE_AUTH_URL = 'https://identitytoolkit.googleapis.com/v1';
@@ -329,9 +333,9 @@
   const MIC_RECOVERY_WINDOW_MS = 30000;
   const MIC_OPEN_RETRY_MS = 220;
   const PTT_MAX_RECORDING_MS = 30000;
-  const MIC_VOICE_PEAK_THRESHOLD = 560 / 32768;
-  const MIC_MIN_VOICE_MS = 240;
-  const MIN_AUDIO_BLOB_SIZE = 800;
+  const MIC_VOICE_PEAK_THRESHOLD = 360 / 32768;
+  const MIC_MIN_VOICE_MS = 160;
+  const MIN_AUDIO_BLOB_SIZE = 700;
 
   const LANGUAGES = [
     ['en','İngilizce','English','🇬🇧','en-GB'],['de','Almanca','Deutsch','🇩🇪','de-DE'],
@@ -409,9 +413,10 @@
 
   function loadSettings() {
     try {
-      return Object.assign({autoSpeak:true,transcribeEngine:'openai_gemini'}, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'));
+      const stored=JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+      return {autoSpeak:stored.autoSpeak!==false};
     } catch {
-      return {autoSpeak:true,transcribeEngine:'openai_gemini'};
+      return {autoSpeak:true};
     }
   }
 
@@ -842,8 +847,7 @@
       setStatus('Ses yazıya çevriliyor', 'working');
       const audioBase64 = await blobToBase64(job.blob);
       const transcript = await serverCall('transcribe', {
-        audioBase64,mime:job.blob.type || 'audio/wav',sourceLanguage:job.sourceLanguage.code,
-        transcribeEngine:settings.transcribeEngine
+        audioBase64,mime:job.blob.type || 'audio/wav',sourceLanguage:job.sourceLanguage.code
       }, 22000);
       const sourceText = String(transcript.text || '').trim();
       if (!sourceText) throw new Error('Ses metne çevrilemedi');

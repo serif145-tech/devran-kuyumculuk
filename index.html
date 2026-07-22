@@ -1,0 +1,933 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b1110">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Devran Tercüman">
+  <title>Devran Kuyumculuk Tercüman</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./brand.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <style>
+    :root{
+      color-scheme:dark;
+      --bg:#0b1110;
+      --panel:#121a18;
+      --panel-2:#17211e;
+      --line:rgba(255,255,255,.11);
+      --text:#f8faf9;
+      --muted:#9ca9a5;
+      --gold:#d6ad49;
+      --gold-soft:#f2dda3;
+      --green:#16a36f;
+      --green-2:#0d7351;
+      --red:#ef5252;
+      --yellow:#f5b82e;
+      --blue:#4597f4;
+      --shadow:0 12px 34px rgba(0,0,0,.28);
+      --safe-top:env(safe-area-inset-top,0px);
+      --safe-bottom:env(safe-area-inset-bottom,0px);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:#070b0a;color:var(--text);font-family:Inter,Manrope,"Segoe UI",Arial,sans-serif;letter-spacing:0}
+    body{overflow:hidden}
+    button,input{font:inherit;letter-spacing:0}
+    button{color:inherit}
+    .app{width:min(100%,920px);height:100dvh;margin:0 auto;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;position:relative;border:1px solid rgba(214,173,73,.24);box-shadow:0 0 36px rgba(214,173,73,.05)}
+    .topbar{flex:0 0 auto;padding:calc(11px + var(--safe-top)) 16px 11px;display:flex;align-items:center;gap:11px;border-bottom:1px solid rgba(214,173,73,.22);background:rgba(8,13,12,.98)}
+    .brand-logo{width:48px;height:48px;display:block;flex:0 0 auto;filter:drop-shadow(0 0 10px rgba(214,173,73,.18))}
+    .brand-copy{min-width:0;flex:1}
+    .brand-name{font-family:Georgia,"Times New Roman",serif;font-size:18px;font-weight:800;color:#f1d58d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase}
+    .brand-sub{margin-top:1px;font-family:Georgia,"Times New Roman",serif;font-size:10px;color:#cda85b;font-weight:750;text-transform:uppercase}
+    .icon-btn{width:40px;height:40px;border:1px solid rgba(214,173,73,.46);border-radius:50%;background:#151d1b;display:grid;place-items:center;cursor:pointer;box-shadow:0 0 16px rgba(214,173,73,.09);transition:transform .14s ease,background .14s ease}
+    .icon-btn:active{transform:scale(.92);background:#202b28}
+    .icon-btn svg{width:20px;height:20px;stroke:var(--gold-soft);stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+    .language-band{flex:0 0 auto;padding:12px 15px;display:grid;grid-template-columns:minmax(0,1fr) 42px minmax(0,1fr);align-items:center;gap:10px;border-bottom:1px solid rgba(214,173,73,.17);background:#0c1211}
+    .language-side{min-width:0;height:66px;border:1px solid rgba(214,173,73,.3);border-radius:8px;background:linear-gradient(145deg,#121918,#0d1312);display:flex;align-items:center;gap:11px;padding:9px 12px;text-align:left;box-shadow:inset 0 1px rgba(255,255,255,.025)}
+    button.language-side{cursor:pointer;border-color:rgba(214,173,73,.42)}
+    button.language-side:active{transform:scale(.985)}
+    .lang-flag{width:35px;height:35px;border-radius:50%;object-fit:cover;flex:0 0 auto;box-shadow:0 0 0 2px rgba(255,255,255,.13),0 4px 12px rgba(0,0,0,.28)}
+    .lang-copy{min-width:0}
+    .lang-role{font-size:9px;color:#9b9585;font-weight:750;text-transform:uppercase}
+    .lang-name{font-size:15px;color:#fff;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .direction{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#f2c65b;font-size:22px;font-weight:900;border:1px solid rgba(214,173,73,.44);background:radial-gradient(circle,#2b2516,#0e1312 70%);box-shadow:0 0 18px rgba(214,173,73,.1)}
+    .statusbar{flex:0 0 auto;min-height:56px;padding:9px 16px;display:flex;align-items:center;gap:12px;background:#0f1614;border-bottom:1px solid rgba(214,173,73,.16)}
+    .state-dot{width:31px;height:31px;border-radius:50%;background:#131b19;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);flex:0 0 auto;position:relative}
+    .state-dot::before{content:"";position:absolute;left:11px;top:7px;width:7px;height:11px;border:2px solid #7e8b87;border-radius:5px}
+    .state-dot::after{content:"";position:absolute;left:9px;top:17px;width:11px;height:7px;border:2px solid #7e8b87;border-top:0;border-radius:0 0 7px 7px}
+    .state-dot[data-state="listening"]{background:var(--green);box-shadow:0 0 0 4px rgba(22,163,111,.18);animation:breathe 1.45s ease-in-out infinite}
+    .state-dot[data-state="listening"]::before,.state-dot[data-state="listening"]::after,.state-dot[data-state="done"]::before,.state-dot[data-state="done"]::after{border-color:#46e89b}
+    .state-dot[data-state="working"]{border:3px solid rgba(245,184,46,.25);border-top-color:var(--yellow);background:transparent;box-shadow:none;animation:spin .8s linear infinite}
+    .state-dot[data-state="working"]::before,.state-dot[data-state="working"]::after{display:none}
+    .state-dot[data-state="done"]{background:var(--green);box-shadow:0 0 0 4px rgba(22,163,111,.18)}
+    .state-dot[data-state="error"]{background:var(--red);box-shadow:0 0 0 4px rgba(239,82,82,.17)}
+    .status-copy{min-width:0;flex:1}
+    .status-text{font-size:13px;font-weight:850;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .queue-text{font-size:10px;color:var(--muted);margin-top:2px}
+    .transcript{flex:1;min-height:0;overflow:auto;padding:14px 14px 20px;scroll-behavior:smooth;position:relative;background-color:#090e0d;background-image:radial-gradient(rgba(214,173,73,.07) .8px,transparent .8px);background-size:13px 13px}
+    .transcript::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(9,14,13,.92),rgba(9,14,13,.45) 50%,rgba(9,14,13,.92));opacity:.9}
+    .transcript>*{position:relative;z-index:1}
+    .empty{height:100%;min-height:210px;display:grid;place-items:center;text-align:center;color:var(--muted);padding:24px}
+    .empty-mark{width:100px;height:100px;margin:0 auto 19px;border:2px solid rgba(232,190,80,.82);border-radius:50%;display:grid;place-items:center;position:relative;isolation:isolate;background:radial-gradient(circle at 50% 46%,rgba(245,204,91,.2) 0,rgba(100,75,18,.12) 35%,rgba(9,14,13,.08) 63%,transparent 74%);box-shadow:0 0 0 5px rgba(214,173,73,.06),0 0 34px rgba(230,181,54,.25),inset 0 0 25px rgba(239,199,87,.12);animation:diamondFloat 4.3s ease-in-out infinite}
+    .empty-mark::before{content:"";position:absolute;inset:-14px;border:2px solid rgba(239,198,89,.52);border-radius:50%;box-shadow:0 0 0 7px rgba(214,173,73,.05),0 0 32px rgba(240,191,59,.34),inset 0 0 19px rgba(255,221,119,.12);z-index:-1;animation:diamondHalo 2.7s ease-in-out infinite}
+    .empty-mark::after{content:"✦";position:absolute;right:-5px;top:0;color:#fff0a0;font-size:17px;line-height:1;text-shadow:-76px 78px 0 rgba(255,220,108,.72),0 0 14px rgba(255,226,126,1);animation:diamondSparkle 3.4s ease-in-out infinite}
+    .empty-brand{width:73px;height:73px;display:block;background:transparent;filter:drop-shadow(0 0 11px rgba(255,211,85,.48));animation:diamondGlow 3.2s ease-in-out infinite}
+    .empty strong{display:block;color:#ecd38e;font-size:18px;margin-bottom:8px}
+    .empty span{font-size:12px;line-height:1.55;color:#b9a875}
+    .turn{margin:0 0 12px;border:1px solid var(--line);border-radius:8px;background:rgba(18,26,24,.94);box-shadow:0 8px 22px rgba(0,0,0,.16);overflow:hidden}
+    .turn-head{display:flex;align-items:center;gap:7px;padding:8px 11px 0;color:var(--muted);font-size:10px;font-weight:800}
+    .turn-head .flag{width:18px;height:18px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1px rgba(255,255,255,.16)}
+    .turn-source{padding:8px 12px 11px;font-size:15px;line-height:1.42;color:#e8eeec;font-weight:600;white-space:pre-wrap;word-break:break-word}
+    .turn-divider{height:1px;background:var(--line);margin:0 11px}
+    .turn-target-head{color:var(--gold-soft)}
+    .turn-target{padding:8px 12px 13px;font-size:17px;line-height:1.43;color:#fff4cf;font-weight:800;white-space:pre-wrap;word-break:break-word}
+    .turn-time{margin-left:auto;color:#71807b;font-size:9px;font-weight:650}
+    .turn.error{border-color:rgba(239,82,82,.4);background:rgba(70,18,18,.28)}
+    .turn.error .turn-target{color:#ffc5c5;font-size:13px}
+    .mic-dock{flex:0 0 auto;padding:11px 14px calc(13px + var(--safe-bottom));display:grid;grid-template-columns:1fr 1fr;align-items:stretch;gap:12px;border-top:1px solid rgba(214,173,73,.2);background:#090e0d}
+    .mic-button{width:100%;height:174px;padding:12px 11px 10px;border:1px solid rgba(255,255,255,.18);border-radius:10px;background:#111816;display:flex;flex-direction:column;align-items:center;justify-content:space-between;cursor:pointer;position:relative;overflow:hidden;isolation:isolate;transition:transform .14s ease,border-color .14s ease,box-shadow .14s ease}
+    .mic-button::after{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none}
+    .mic-button:active{transform:scale(.975)}
+    .mic-button.shop{border-color:rgba(214,173,73,.72);box-shadow:inset 0 0 40px rgba(214,173,73,.035),0 8px 24px rgba(0,0,0,.22)}
+    .mic-button.shop::after{background:radial-gradient(circle at 50% 54%,rgba(214,173,73,.14),transparent 43%)}
+    .mic-button.customer{border-color:rgba(23,190,105,.62);box-shadow:inset 0 0 40px rgba(23,190,105,.035),0 8px 24px rgba(0,0,0,.22)}
+    .mic-button.customer::after{background:radial-gradient(circle at 50% 54%,rgba(23,190,105,.14),transparent 43%)}
+    .mic-dock.has-active .mic-button:not(.recording){opacity:.45;filter:saturate(.58);transform:scale(.985)}
+    .mic-button.shop.recording{border-color:#efc75e;box-shadow:0 0 0 2px rgba(214,173,73,.17),0 0 32px rgba(214,173,73,.2),inset 0 0 44px rgba(214,173,73,.08)}
+    .mic-button.customer.recording{border-color:#35e492;box-shadow:0 0 0 2px rgba(34,211,125,.16),0 0 32px rgba(34,211,125,.19),inset 0 0 44px rgba(34,211,125,.08)}
+    .mic-button.busy{opacity:.62}
+    .mic-language{height:31px;display:flex;align-items:center;gap:7px;position:relative;z-index:2}
+    .mic-flag{width:27px;height:27px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1px rgba(255,255,255,.19)}
+    .mic-code{font-size:22px;line-height:1;font-weight:900;color:#fff}
+    .mic-orb{width:76px;height:76px;display:grid;place-items:center;position:relative;z-index:2;border-radius:50%;transition:transform 80ms linear,box-shadow .16s ease}
+    .mic-orb::before,.mic-orb::after{content:"";position:absolute;border-radius:50%;inset:-8px;border:1px solid currentColor;opacity:.17;animation:micPulse 2.1s ease-out infinite}
+    .mic-orb::after{inset:-17px;opacity:.08;animation-delay:.48s}
+    .shop .mic-orb{color:#e1b643;background:radial-gradient(circle,#a97c18,#2b2414 65%,#111713);border:2px solid #d7a936;box-shadow:0 0 24px rgba(214,173,73,.28),inset 0 0 20px rgba(255,224,126,.13)}
+    .customer .mic-orb{color:#26d37d;background:radial-gradient(circle,#109654,#123623 65%,#101713);border:2px solid #21c774;box-shadow:0 0 24px rgba(22,190,105,.25),inset 0 0 20px rgba(126,255,188,.12)}
+    .mic-button.recording .mic-orb{transform:scale(var(--voice-scale,1.04))}
+    .mic-button.shop.recording .mic-orb{box-shadow:0 0 38px rgba(230,185,73,.46),inset 0 0 22px rgba(255,224,126,.2)}
+    .mic-button.customer.recording .mic-orb{box-shadow:0 0 38px rgba(33,211,123,.42),inset 0 0 22px rgba(126,255,188,.18)}
+    .mic-wave{position:absolute;left:50%;top:54%;width:min(76%,180px);height:54px;display:flex;align-items:center;justify-content:space-between;gap:4px;z-index:1;opacity:0;transform:translate(-50%,-50%);transition:opacity .16s ease;pointer-events:none}
+    .mic-wave i{width:4px;height:var(--bar-height,18px);border-radius:9px;transform:scaleY(.18);transition:transform 70ms linear,opacity .12s ease;opacity:.84;box-shadow:0 0 9px currentColor}
+    .mic-wave i:nth-child(1),.mic-wave i:nth-child(7){--bar-height:15px}.mic-wave i:nth-child(2),.mic-wave i:nth-child(6){--bar-height:25px}.mic-wave i:nth-child(3),.mic-wave i:nth-child(5){--bar-height:38px}.mic-wave i:nth-child(4){--bar-height:50px}
+    .shop .mic-wave{color:#f0c554}.shop .mic-wave i{background:#f0c554}.customer .mic-wave{color:#31dd87}.customer .mic-wave i{background:#31dd87}
+    .mic-button.recording .mic-wave{opacity:.82}
+    .mic-icon{width:38px;height:38px;stroke:#fff;stroke-width:2.35;fill:none;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 5px rgba(0,0,0,.4))}
+    .mic-route{position:relative;z-index:2;display:block;font-size:10px;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+    .shop .mic-route{color:#e3bb56}.customer .mic-route{color:#41d78e}
+    .mic-countdown{display:none;position:absolute;inset:0;z-index:4;align-items:center;justify-content:center;flex-direction:column;background:rgba(8,13,12,.86)}
+    .mic-button.counting .mic-countdown{display:flex}
+    .countdown{font-size:40px;font-weight:900;color:#fff;line-height:1;text-shadow:0 2px 12px rgba(0,0,0,.55)}
+    .countdown-label{margin-top:7px;font-size:9px;color:#fff;font-weight:800;text-shadow:0 1px 6px #000}
+    .modal-backdrop,.login-layer{position:fixed;inset:0;z-index:50;background:rgba(2,6,5,.72);backdrop-filter:blur(9px);display:none;align-items:flex-end;justify-content:center;padding:16px}
+    .modal-backdrop.open,.login-layer.open{display:flex}
+    .sheet{width:min(100%,620px);max-height:min(82dvh,720px);border:1px solid rgba(214,173,73,.35);border-radius:12px 12px 8px 8px;background:#111917;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
+    .sheet-head{display:flex;align-items:center;gap:10px;padding:14px;border-bottom:1px solid var(--line)}
+    .sheet-title{font-size:15px;font-weight:850;flex:1}
+    .close-btn{width:36px;height:36px;border:0;border-radius:50%;background:#202a27;color:#fff;font-size:20px;cursor:pointer}
+    .search-wrap{padding:10px 12px;border-bottom:1px solid var(--line)}
+    .search-input,.password-input{width:100%;height:44px;border:1px solid var(--line);border-radius:8px;background:#0c1211;color:#fff;padding:0 13px;outline:none;font-size:14px}
+    .search-input:focus,.password-input:focus{border-color:rgba(214,173,73,.65);box-shadow:0 0 0 3px rgba(214,173,73,.09)}
+    .language-list{overflow:auto;padding:6px}
+    .language-option{width:100%;height:48px;border:0;border-bottom:1px solid rgba(255,255,255,.06);background:transparent;display:flex;align-items:center;gap:11px;padding:0 10px;text-align:left;cursor:pointer}
+    .language-option.selected{background:rgba(22,163,111,.13)}
+    .language-option .flag{width:27px;height:27px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1px rgba(255,255,255,.16)}
+    .language-option .names{min-width:0;flex:1}
+    .language-option .tr-name{display:block;font-size:13px;font-weight:800;color:#f5f7f6}
+    .language-option .native-name{display:block;font-size:10px;color:var(--muted);margin-top:2px}
+    .language-option .check{color:var(--green);font-size:18px}
+    .settings-body{padding:12px;overflow:auto}
+    .setting-row{min-height:58px;padding:9px 2px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+    .setting-copy{min-width:0;flex:1}
+    .setting-name{font-size:13px;font-weight:800}
+    .setting-desc{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.35}
+    .switch{width:48px;height:28px;border:0;border-radius:18px;background:#3b4542;padding:3px;cursor:pointer;transition:background .16s ease}
+    .switch span{display:block;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .16s ease}
+    .switch.on{background:var(--green)}
+    .switch.on span{transform:translateX(20px)}
+    .segments{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+    .segment{height:38px;border:1px solid var(--line);border-radius:8px;background:#18211f;color:#cbd4d1;font-size:11px;font-weight:800;cursor:pointer}
+    .segment.on{border-color:rgba(214,173,73,.7);background:#332912;color:#ffe9ad}
+    .danger-btn{height:40px;border:1px solid rgba(239,82,82,.38);border-radius:8px;background:rgba(239,82,82,.09);color:#ffaaaa;padding:0 13px;font-size:11px;font-weight:800;cursor:pointer}
+    .login-layer{align-items:center;z-index:80;background:#080d0c}
+    .login-card{width:min(100%,410px);border:1px solid rgba(214,173,73,.37);border-radius:12px;background:#111917;padding:22px;box-shadow:var(--shadow)}
+    .login-brand{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+    .login-brand img{width:56px;height:56px}
+    .login-brand strong{display:block;font-size:17px}
+    .login-brand span{display:block;color:var(--gold-soft);font-size:11px;margin-top:3px}
+    .login-help{font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:10px}
+    .login-btn{width:100%;height:46px;margin-top:10px;border:1px solid rgba(214,173,73,.7);border-radius:8px;background:linear-gradient(135deg,#be8f25,#e0bb5d);color:#151007;font-weight:900;cursor:pointer}
+    .login-error{min-height:18px;margin-top:8px;color:#ff9c9c;font-size:11px}
+    .toast{position:fixed;left:50%;bottom:calc(138px + var(--safe-bottom));z-index:100;transform:translate(-50%,18px);opacity:0;pointer-events:none;max-width:min(88vw,460px);padding:10px 14px;border:1px solid var(--line);border-radius:8px;background:#18211f;color:#fff;font-size:12px;font-weight:750;box-shadow:var(--shadow);transition:opacity .18s ease,transform .18s ease;text-align:center}
+    .toast.show{opacity:1;transform:translate(-50%,0)}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes micPulse{0%{transform:scale(.82);opacity:0}34%{opacity:.22}100%{transform:scale(1.2);opacity:0}}
+    @keyframes breathe{0%,100%{transform:scale(.88);box-shadow:0 0 0 3px rgba(22,163,111,.13)}50%{transform:scale(1);box-shadow:0 0 0 8px rgba(22,163,111,.04)}}
+    @keyframes diamondFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-5px) scale(1.025)}}
+    @keyframes diamondHalo{0%,100%{transform:scale(.86);opacity:.28}50%{transform:scale(1.14);opacity:.92}}
+    @keyframes diamondGlow{0%,58%,100%{filter:drop-shadow(0 0 10px rgba(214,173,73,.38));transform:scale(1)}70%{filter:drop-shadow(0 0 28px rgba(255,220,105,.96));transform:scale(1.09)}84%{filter:drop-shadow(0 0 17px rgba(244,195,68,.58));transform:scale(1.025)}}
+    @keyframes diamondSparkle{0%,55%,100%{opacity:.18;transform:scale(.55) rotate(0deg)}68%{opacity:1;transform:scale(1.25) rotate(90deg)}80%{opacity:.48;transform:scale(.78) rotate(180deg)}}
+    @media (prefers-reduced-motion:reduce){.empty-mark,.empty-mark::before,.empty-mark::after,.empty-brand,.mic-orb::before,.mic-orb::after{animation:none!important}}
+    @media (min-width:700px){
+      .topbar{padding-inline:20px}.language-band{padding-inline:20px}.transcript{padding:18px 20px}.mic-dock{padding-inline:20px}.mic-button{height:190px}.mic-orb{width:88px;height:88px}
+      .turn-source{font-size:16px}.turn-target{font-size:18px}
+    }
+    @media (max-height:650px) and (orientation:landscape){
+      .topbar{padding-top:calc(6px + var(--safe-top));padding-bottom:6px}.brand-logo{width:36px;height:36px}.brand-sub{display:none}
+      .language-band{padding-top:6px;padding-bottom:6px}.language-side{height:44px}.statusbar{min-height:38px;padding-block:5px}
+      .mic-dock{padding-top:7px;padding-bottom:calc(7px + var(--safe-bottom));gap:10px}.mic-button{height:82px;display:grid;grid-template-columns:auto 48px minmax(0,1fr);padding:7px 12px}.mic-language{height:auto}.mic-code{font-size:17px}.mic-flag{width:24px;height:24px}.mic-orb{width:46px;height:46px}.mic-icon{width:26px;height:26px}.mic-route{text-align:right}.mic-orb::before,.mic-orb::after{display:none}.mic-wave{width:44%;height:34px;left:49%;top:50%;gap:2px}.mic-wave i{width:3px;--bar-height:24px!important}
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="topbar">
+      <img class="brand-logo" src="./brand.svg" alt="Devran Kuyumculuk">
+      <div class="brand-copy">
+        <div class="brand-name">Devran Kuyumculuk</div>
+        <div class="brand-sub">Çok Dilli Tercüman</div>
+      </div>
+      <button class="icon-btn" id="settingsBtn" type="button" aria-label="Ayarlar" title="Ayarlar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6V20h-4v-.08a1.7 1.7 0 0 0-1-.6 1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1H4v-4h.08a1.7 1.7 0 0 0 .6-1 1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6V4h4v.08a1.7 1.7 0 0 0 1 .6 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 .6 1h.08v4H20a1.7 1.7 0 0 0-.6 1Z"/></svg>
+      </button>
+    </header>
+
+    <section class="language-band" aria-label="Konuşma dilleri">
+      <div class="language-side">
+        <img class="lang-flag" src="./flags/tr.svg" alt="Türk bayrağı">
+        <div class="lang-copy"><div class="lang-role">Dükkan</div><div class="lang-name">Türkçe</div></div>
+      </div>
+      <div class="direction" aria-hidden="true">⇄</div>
+      <button class="language-side" id="customerLanguageBtn" type="button">
+        <img class="lang-flag" id="customerFlag" src="./flags/gb.svg" alt="İngiltere bayrağı">
+        <div class="lang-copy"><div class="lang-role">Müşteri</div><div class="lang-name" id="customerLanguageName">İngilizce</div></div>
+      </button>
+    </section>
+
+    <section class="statusbar" aria-live="polite">
+      <span class="state-dot" id="stateDot" data-state="idle"></span>
+      <div class="status-copy">
+        <div class="status-text" id="statusText">Mikrofon hazır</div>
+        <div class="queue-text" id="queueText">Konuşmak için mikrofona dokun</div>
+      </div>
+    </section>
+
+    <main class="transcript" id="transcript">
+      <div class="empty" id="emptyState">
+        <div><div class="empty-mark"><img class="empty-brand" src="./diamond.svg" alt=""></div><strong>Görüşmeye hazır</strong><span>Konuşmak için kendi tarafınızdaki<br>mikrofon düğmesine dokunun.</span></div>
+      </div>
+    </main>
+
+    <footer class="mic-dock">
+      <button class="mic-button shop" id="shopMic" type="button" aria-label="Türkçe konuş">
+        <span class="mic-language"><img class="mic-flag" src="./flags/tr.svg" alt=""><strong class="mic-code">TR</strong></span>
+        <span class="mic-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        <span class="mic-orb"><svg class="mic-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/></svg></span>
+        <span class="mic-route" id="shopRoute">Türkçe → İngilizce</span>
+        <span class="mic-countdown"><span class="countdown">2</span><span class="countdown-label">Kapanıyor</span></span>
+      </button>
+      <button class="mic-button customer" id="customerMic" type="button" aria-label="Müşteri konuşsun">
+        <span class="mic-language"><img class="mic-flag" id="customerMicFlag" src="./flags/gb.svg" alt=""><strong class="mic-code" id="customerMicCode">EN</strong></span>
+        <span class="mic-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        <span class="mic-orb"><svg class="mic-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/></svg></span>
+        <span class="mic-route" id="customerRoute">İngilizce → Türkçe</span>
+        <span class="mic-countdown"><span class="countdown">2</span><span class="countdown-label">Kapanıyor</span></span>
+      </button>
+    </footer>
+  </div>
+
+  <div class="modal-backdrop" id="languageModal" role="dialog" aria-modal="true" aria-label="Müşteri dili seç">
+    <div class="sheet">
+      <div class="sheet-head"><div class="sheet-title">Müşteri dili</div><button class="close-btn" type="button" data-close="languageModal" aria-label="Kapat">×</button></div>
+      <div class="search-wrap"><input class="search-input" id="languageSearch" type="search" placeholder="Dil ara..." autocomplete="off"></div>
+      <div class="language-list" id="languageList"></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="settingsModal" role="dialog" aria-modal="true" aria-label="Ayarlar">
+    <div class="sheet">
+      <div class="sheet-head"><div class="sheet-title">Ayarlar</div><button class="close-btn" type="button" data-close="settingsModal" aria-label="Kapat">×</button></div>
+      <div class="settings-body">
+        <div class="setting-row">
+          <div class="setting-copy"><div class="setting-name">Otomatik seslendirme</div><div class="setting-desc">Çeviriyi telefonun ücretsiz sesiyle okur.</div></div>
+          <button class="switch on" id="autoSpeakSwitch" type="button" aria-label="Otomatik seslendirme"><span></span></button>
+        </div>
+        <div class="setting-row" style="display:block">
+          <div class="setting-copy"><div class="setting-name">Gürültü engelleme</div><div class="setting-desc">Dükkanın ses seviyesine göre mikrofon hassasiyetini ayarlar.</div></div>
+          <div class="segments" id="noiseSegments">
+            <button class="segment" data-noise="0" type="button">Normal</button>
+            <button class="segment" data-noise="1" type="button">Gürültü 1</button>
+            <button class="segment" data-noise="2" type="button">Gürültü 2</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-copy"><div class="setting-name">Geçmişi temizle</div><div class="setting-desc">Bu cihazdaki son çevirileri kaldırır.</div></div>
+          <button class="danger-btn" id="clearHistoryBtn" type="button">Temizle</button>
+        </div>
+        <div class="setting-row">
+          <div class="setting-copy"><div class="setting-name">Oturumu kapat</div><div class="setting-desc">Bu cihazdan erişim şifresini kaldırır.</div></div>
+          <button class="danger-btn" id="logoutBtn" type="button">Çıkış</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="login-layer open" id="loginLayer">
+    <form class="login-card" id="loginForm">
+      <div class="login-brand"><img src="./brand.svg" alt=""><div><strong>Devran Kuyumculuk</strong><span>Çok Dilli Tercüman</span></div></div>
+      <div class="login-help">İlk kullanımda Devran şifresini bir kez girin. Oturum bu cihazda saklanır.</div>
+      <input class="password-input" id="passwordInput" type="password" placeholder="Erişim şifresi" autocomplete="current-password" required>
+      <button class="login-btn" id="loginBtn" type="submit">Giriş yap</button>
+      <div class="login-error" id="loginError"></div>
+    </form>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+  'use strict';
+
+  // Ses hattı AskViet PWA Bas-Konuş sisteminden ayrıştırıldı: aynı PCM kayıt,
+  // sessizlik sayacı, gürültü profilleri, güvenli kapanış ve telefon TTS akışı.
+  const API_URL = 'https://asia-southeast1-askviet-9c4ea.cloudfunctions.net/devranApi';
+  const FIREBASE_WEB_API_KEY = 'AIzaSyAB3bpvACQhlX6taqT0C0veJP_PrKR1WqQ';
+  const FIREBASE_AUTH_URL = 'https://identitytoolkit.googleapis.com/v1';
+  const FIREBASE_REFRESH_URL = 'https://securetoken.googleapis.com/v1/token';
+  const AUTH_EMAIL = 'devran.kuyumculuk@askviet.app';
+  const EXPECTED_UID = 'cxv6kczpcXNSpv3VXjaFGeXVt3j2';
+  const AUTH_KEY = 'devran_kuyumculuk_auth_v1';
+  const HISTORY_KEY = 'devran_kuyumculuk_history_v1';
+  const SETTINGS_KEY = 'devran_kuyumculuk_settings_v1';
+  const CUSTOMER_LANGUAGE_KEY = 'devran_customer_language_v1';
+  const PTT_SILENCE_MS = 2000;
+  const MIC_NO_SPEECH_MS = 4500;
+  const MIC_RECOVERY_WINDOW_MS = 30000;
+  const MIC_OPEN_RETRY_MS = 220;
+  const PTT_MAX_RECORDING_MS = 30000;
+  const MIC_VOICE_PEAK_THRESHOLD = 900 / 32768;
+  const MIC_MIN_VOICE_MS = 420;
+  const MIN_AUDIO_BLOB_SIZE = 1200;
+
+  const LANGUAGES = [
+    ['en','İngilizce','English','🇬🇧','en-GB'],['de','Almanca','Deutsch','🇩🇪','de-DE'],
+    ['fr','Fransızca','Français','🇫🇷','fr-FR'],['ar','Arapça','العربية','🇸🇦','ar-SA'],
+    ['ru','Rusça','Русский','🇷🇺','ru-RU'],['uk','Ukraynaca','Українська','🇺🇦','uk-UA'],
+    ['es','İspanyolca','Español','🇪🇸','es-ES'],['it','İtalyanca','Italiano','🇮🇹','it-IT'],
+    ['pt','Portekizce','Português','🇵🇹','pt-PT'],['nl','Felemenkçe','Nederlands','🇳🇱','nl-NL'],
+    ['pl','Lehçe','Polski','🇵🇱','pl-PL'],['ro','Rumence','Română','🇷🇴','ro-RO'],
+    ['bg','Bulgarca','Български','🇧🇬','bg-BG'],['el','Yunanca','Ελληνικά','🇬🇷','el-GR'],
+    ['sr','Sırpça','Српски','🇷🇸','sr-RS'],['hr','Hırvatça','Hrvatski','🇭🇷','hr-HR'],
+    ['bs','Boşnakça','Bosanski','🇧🇦','bs-BA'],['sq','Arnavutça','Shqip','🇦🇱','sq-AL'],
+    ['fa','Farsça','فارسی','🇮🇷','fa-IR'],['he','İbranice','עברית','🇮🇱','he-IL'],
+    ['az','Azerbaycanca','Azərbaycan dili','🇦🇿','az-AZ'],['ka','Gürcüce','ქართული','🇬🇪','ka-GE'],
+    ['hy','Ermenice','Հայերեն','🇦🇲','hy-AM'],['kk','Kazakça','Қазақ тілі','🇰🇿','kk-KZ'],
+    ['uz','Özbekçe','O‘zbekcha','🇺🇿','uz-UZ'],['hi','Hintçe','हिन्दी','🇮🇳','hi-IN'],
+    ['ur','Urduca','اردو','🇵🇰','ur-PK'],['bn','Bengalce','বাংলা','🇧🇩','bn-BD'],
+    ['pa','Pencapça','ਪੰਜਾਬੀ','🇮🇳','pa-IN'],['zh','Çince','中文','🇨🇳','zh-CN'],
+    ['ja','Japonca','日本語','🇯🇵','ja-JP'],['ko','Korece','한국어','🇰🇷','ko-KR'],
+    ['vi','Vietnamca','Tiếng Việt','🇻🇳','vi-VN'],['th','Tayca','ไทย','🇹🇭','th-TH'],
+    ['id','Endonezce','Bahasa Indonesia','🇮🇩','id-ID'],['ms','Malayca','Bahasa Melayu','🇲🇾','ms-MY'],
+    ['fil','Filipince','Filipino','🇵🇭','fil-PH'],['cs','Çekçe','Čeština','🇨🇿','cs-CZ'],
+    ['sk','Slovakça','Slovenčina','🇸🇰','sk-SK'],['hu','Macarca','Magyar','🇭🇺','hu-HU'],
+    ['sv','İsveççe','Svenska','🇸🇪','sv-SE'],['no','Norveççe','Norsk','🇳🇴','nb-NO'],
+    ['da','Danca','Dansk','🇩🇰','da-DK'],['fi','Fince','Suomi','🇫🇮','fi-FI']
+  ].map(([code,tr,native,flag,locale]) => ({code,tr,native,flag,locale,country:locale.split('-').pop().toLowerCase()}));
+
+  const TURKISH = {code:'tr',tr:'Türkçe',native:'Türkçe',flag:'🇹🇷',locale:'tr-TR',country:'tr'};
+  let customerLanguage = findLanguage(localStorage.getItem(CUSTOMER_LANGUAGE_KEY)) || LANGUAGES[0];
+  let settings = loadSettings();
+  let auth = loadAuth();
+  let authRefreshPromise = null;
+  let recorder = null;
+  let recStream = null;
+  let recAudioCtx = null;
+  let recNode = null;
+  let recProcessor = null;
+  let recGain = null;
+  let recChunks = [];
+  let recSampleRate = 48000;
+  let recStartedAt = 0;
+  let recLastAt = 0;
+  let recVoiceMs = 0;
+  let recStrongVoiceMs = 0;
+  let recCurrentVoiceRunMs = 0;
+  let recLongestVoiceRunMs = 0;
+  let recPeakLevel = 0;
+  let recHadSpeech = false;
+  let recSilentSince = 0;
+  let recLastVisualAt = 0;
+  let noSpeechStops = [];
+  let micNeedsFreshStart = false;
+  let activeMicButton = null;
+  let activeSourceLanguage = null;
+  let activeTargetLanguage = null;
+  let activeListenText = '';
+  let recordingStarting = false;
+  let jobs = [];
+  let processing = false;
+  let wakeLock = null;
+  let speechToken = 0;
+  let phoneTtsUtterance = null;
+  let pendingSpeech = null;
+  let toastTimer = null;
+  let clickCtx = null;
+
+  const $ = (id) => document.getElementById(id);
+
+  function findLanguage(code) {
+    return LANGUAGES.find((language) => language.code === String(code || '').toLowerCase());
+  }
+
+  function flagPath(language) {
+    return './flags/' + String(language?.country || 'tr').toLowerCase() + '.svg';
+  }
+
+  function loadSettings() {
+    try {
+      return Object.assign({autoSpeak:true,noiseLevel:0,transcribeEngine:'openai_gemini'}, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'));
+    } catch {
+      return {autoSpeak:true,noiseLevel:0,transcribeEngine:'openai_gemini'};
+    }
+  }
+
+  function saveSettings() {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    syncSettingsUi();
+  }
+
+  function loadAuth() {
+    try {
+      const value = JSON.parse(localStorage.getItem(AUTH_KEY) || 'null');
+      return value && value.refreshToken && value.localId === EXPECTED_UID ? value : null;
+    } catch { return null; }
+  }
+
+  function saveAuth(session) {
+    auth = session;
+    localStorage.setItem(AUTH_KEY, JSON.stringify(session));
+  }
+
+  async function authPost(url, body, form=false) {
+    const response = await fetch(url, {
+      method:'POST',
+      headers:{'Content-Type':form ? 'application/x-www-form-urlencoded' : 'application/json'},
+      body:form ? new URLSearchParams(body) : JSON.stringify(body)
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data?.error?.message || response.statusText || 'Giriş başarısız');
+    return data;
+  }
+
+  async function signIn(password) {
+    const data = await authPost(FIREBASE_AUTH_URL + '/accounts:signInWithPassword?key=' + encodeURIComponent(FIREBASE_WEB_API_KEY), {
+      email:AUTH_EMAIL,password,returnSecureToken:true
+    });
+    if (data.localId !== EXPECTED_UID) throw new Error('Bu hesap yetkili değil');
+    saveAuth({
+      localId:data.localId,idToken:data.idToken,refreshToken:data.refreshToken,
+      expiresAt:Date.now() + Number(data.expiresIn || 3600) * 1000
+    });
+    return auth;
+  }
+
+  async function refreshAuth(force=false) {
+    if (!auth) throw new Error('Giriş gerekli');
+    if (!force && auth.idToken && auth.expiresAt - Date.now() > 5 * 60 * 1000) return auth;
+    if (authRefreshPromise) return authRefreshPromise;
+    authRefreshPromise = (async () => {
+      const data = await authPost(FIREBASE_REFRESH_URL + '?key=' + encodeURIComponent(FIREBASE_WEB_API_KEY), {
+        grant_type:'refresh_token',refresh_token:auth.refreshToken
+      }, true);
+      saveAuth({
+        localId:data.user_id || auth.localId,idToken:data.id_token,
+        refreshToken:data.refresh_token || auth.refreshToken,
+        expiresAt:Date.now() + Number(data.expires_in || 3600) * 1000
+      });
+      return auth;
+    })();
+    try { return await authRefreshPromise; }
+    finally { authRefreshPromise = null; }
+  }
+
+  async function serverCall(action, payload, timeoutMs=20000, retry=true) {
+    await refreshAuth(false);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(API_URL, {
+        method:'POST',signal:controller.signal,
+        headers:{'Content-Type':'application/json','Authorization':'Bearer ' + auth.idToken},
+        body:JSON.stringify(Object.assign({action},payload || {}))
+      });
+      const data = await response.json().catch(() => ({}));
+      if (response.status === 401 && retry) {
+        await refreshAuth(true);
+        return serverCall(action,payload,timeoutMs,false);
+      }
+      if (!response.ok) throw new Error(data.error || response.statusText || ('HTTP ' + response.status));
+      return data;
+    } catch (error) {
+      if (error && error.name === 'AbortError') throw new Error('İşlem zaman aşımına uğradı');
+      throw error;
+    } finally { clearTimeout(timer); }
+  }
+
+  function updateLanguageUi() {
+    if ($('customerFlag')) { $('customerFlag').src = flagPath(customerLanguage); $('customerFlag').alt = customerLanguage.tr + ' bayrağı'; }
+    if ($('customerMicFlag')) $('customerMicFlag').src = flagPath(customerLanguage);
+    if ($('customerMicCode')) $('customerMicCode').textContent = customerLanguage.code.toUpperCase();
+    if ($('customerLanguageName')) $('customerLanguageName').textContent = customerLanguage.tr;
+    if ($('shopRoute')) $('shopRoute').textContent = 'Türkçe → ' + customerLanguage.tr;
+    if ($('customerRoute')) $('customerRoute').textContent = customerLanguage.tr + ' → Türkçe';
+    $('customerMic').setAttribute('aria-label', customerLanguage.tr + ' konuş');
+    localStorage.setItem(CUSTOMER_LANGUAGE_KEY, customerLanguage.code);
+  }
+
+  function renderLanguageList(filter='') {
+    const query = String(filter || '').toLocaleLowerCase('tr-TR').trim();
+    const list = $('languageList');
+    list.textContent = '';
+    LANGUAGES.filter((language) => !query || (language.tr + ' ' + language.native + ' ' + language.code).toLocaleLowerCase('tr-TR').includes(query)).forEach((language) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'language-option' + (language.code === customerLanguage.code ? ' selected' : '');
+      button.innerHTML = '<img class="flag" src="' + flagPath(language) + '" alt=""><span class="names"><span class="tr-name">' + escapeHtml(language.tr) + '</span><span class="native-name">' + escapeHtml(language.native) + '</span></span><span class="check">' + (language.code === customerLanguage.code ? '✓' : '') + '</span>';
+      button.addEventListener('click', () => {
+        customerLanguage = language;
+        updateLanguageUi();
+        renderLanguageList($('languageSearch').value);
+        closeModal('languageModal');
+        showToast(language.tr + ' seçildi');
+      });
+      list.appendChild(button);
+    });
+  }
+
+  function escapeHtml(value) {
+    return String(value || '').replace(/[&<>"']/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  }
+
+  function openModal(id) {
+    $(id).classList.add('open');
+    if (id === 'languageModal') {
+      $('languageSearch').value = '';
+      renderLanguageList();
+      setTimeout(() => $('languageSearch').focus(), 80);
+    }
+  }
+
+  function closeModal(id) { $(id).classList.remove('open'); }
+
+  function setStatus(text, state='idle') {
+    $('statusText').textContent = text || 'Mikrofon hazır';
+    $('stateDot').dataset.state = state;
+    updateQueueText();
+  }
+
+  function updateQueueText() {
+    const count = jobs.length + (processing ? 1 : 0);
+    if (recorder && recorder.state === 'recording') $('queueText').textContent = 'Konuşma kaydediliyor';
+    else if (count) $('queueText').textContent = 'Sırada ' + count + ' konuşma var';
+    else $('queueText').textContent = 'Konuşmak için mikrofona dokun';
+  }
+
+  function showToast(text) {
+    const toast = $('toast');
+    toast.textContent = text;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2400);
+  }
+
+  function playClick() {
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      clickCtx = clickCtx && clickCtx.state !== 'closed' ? clickCtx : new Ctx();
+      const now = clickCtx.currentTime;
+      const osc = clickCtx.createOscillator();
+      const gain = clickCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(320, now);
+      osc.frequency.exponentialRampToValueAtTime(150, now + .06);
+      gain.gain.setValueAtTime(.0001, now);
+      gain.gain.exponentialRampToValueAtTime(.1, now + .008);
+      gain.gain.exponentialRampToValueAtTime(.0001, now + .11);
+      osc.connect(gain);gain.connect(clickCtx.destination);osc.start(now);osc.stop(now + .13);
+    } catch {}
+  }
+
+  async function startRecording(sourceLanguage, targetLanguage, button) {
+    if (recordingStarting) return;
+    if (recorder && recorder.state === 'recording') {
+      stopRecording();
+      return;
+    }
+    recordingStarting = true;
+    if (micNeedsFreshStart) {
+      micNeedsFreshStart = false;
+      await new Promise((resolve) => setTimeout(resolve, MIC_OPEN_RETRY_MS));
+    }
+    cancelSpeech();
+    unlockPhoneTts();
+    activeSourceLanguage = sourceLanguage;
+    activeTargetLanguage = targetLanguage;
+    activeMicButton = button;
+    activeListenText = sourceLanguage.tr + ' dinleniyor';
+    resetRecordingMetrics();
+    button.classList.add('recording');
+    button.parentElement?.classList.add('has-active');
+    setStatus(activeListenText, 'listening');
+    try {
+      await refreshAuth(false);
+      await requestWakeLock();
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) throw new Error('Bu tarayıcı ses kaydını desteklemiyor');
+      if (!navigator.mediaDevices?.getUserMedia) throw new Error('Bu tarayıcı mikrofon erişimini desteklemiyor');
+      recAudioCtx = new Ctx();
+      if (recAudioCtx.state === 'suspended') await recAudioCtx.resume();
+      recStream = await requestMicrophoneStream();
+      recNode = recAudioCtx.createMediaStreamSource(recStream);
+      recSampleRate = recAudioCtx.sampleRate || 48000;
+      recProcessor = recAudioCtx.createScriptProcessor(2048,1,1);
+      recGain = recAudioCtx.createGain();
+      recGain.gain.value = 0;
+      recNode.connect(recProcessor);recProcessor.connect(recGain);recGain.connect(recAudioCtx.destination);
+      const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
+      recorder = new MediaRecorder(recStream,{mimeType:mime});
+      recStartedAt = Date.now();
+      recLastAt = recStartedAt;
+      recProcessor.onaudioprocess = handleAudioProcess;
+      recorder.onstop = finishRecording;
+      recorder.start(120);
+    } catch (error) {
+      cleanupRecording();
+      setStatus('Mikrofon açılamadı', 'error');
+      showToast(error && error.message || 'Mikrofon izni gerekli');
+    } finally { recordingStarting = false; }
+  }
+
+  function resetRecordingMetrics() {
+    recChunks=[];recVoiceMs=0;recStrongVoiceMs=0;recCurrentVoiceRunMs=0;recLongestVoiceRunMs=0;recPeakLevel=0;recHadSpeech=false;recSilentSince=0;recLastVisualAt=0;
+  }
+
+  function resetNoSpeechStops() { noSpeechStops = []; }
+
+  function noteNoSpeechStop() {
+    const now = Date.now();
+    noSpeechStops = noSpeechStops.filter((time) => now - time < MIC_RECOVERY_WINDOW_MS);
+    noSpeechStops.push(now);
+    if (noSpeechStops.length < 2) return false;
+    noSpeechStops = [];
+    micNeedsFreshStart = true;
+    setStatus('Mikrofon yenilendi', 'done');
+    setTimeout(() => { if (!recorder && !processing) setStatus('Mikrofon hazır', 'idle'); }, 900);
+    return true;
+  }
+
+  function canRetryMicrophoneOpen(error) {
+    const name = String(error?.name || '');
+    const message = String(error?.message || '');
+    return /NotReadableError|AbortError|TrackStartError|InvalidStateError|Could not start|device.*busy/i.test(name + ' ' + message);
+  }
+
+  async function requestMicrophoneStream() {
+    const constraints = {audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,channelCount:1}};
+    try {
+      return await navigator.mediaDevices.getUserMedia(constraints);
+    } catch (error) {
+      if (!canRetryMicrophoneOpen(error)) throw error;
+      await new Promise((resolve) => setTimeout(resolve, MIC_OPEN_RETRY_MS));
+      try { await navigator.mediaDevices.enumerateDevices?.(); } catch {}
+      return navigator.mediaDevices.getUserMedia(constraints);
+    }
+  }
+
+  function updateRecordingVisualizer(peak, threshold, now) {
+    if (!activeMicButton || now - recLastVisualAt < 65) return;
+    recLastVisualAt = now;
+    const level = Math.max(0, Math.min(1, peak / Math.max(.055, threshold * 3.1)));
+    activeMicButton.style.setProperty('--voice-scale', String(1.025 + level * .13));
+    const boosts = [.55,.82,1.08,1.28,1.02,.78,.52];
+    activeMicButton.querySelectorAll('.mic-wave i').forEach((bar, index) => {
+      const movement = .16 + level * boosts[index];
+      bar.style.transform = 'scaleY(' + Math.min(1.42, movement).toFixed(2) + ')';
+      bar.style.opacity = String(.42 + level * .5);
+    });
+  }
+
+  function handleAudioProcess(event) {
+    if (!recorder || recorder.state !== 'recording') return;
+    const input = event?.inputBuffer?.getChannelData(0);
+    if (!input?.length) return;
+    const pcm = new Float32Array(input);
+    recChunks.push(pcm);
+    const now = Date.now();
+    const elapsed = recLastAt ? Math.max(1,Math.min(250,now-recLastAt)) : 1;
+    recLastAt = now;
+    const peak = signalLevel(pcm).peak;
+    const noise = Number(settings.noiseLevel || 0);
+    const threshold = MIC_VOICE_PEAK_THRESHOLD * (noise === 2 ? 2.05 : (noise === 1 ? 1.45 : 1));
+    updateRecordingVisualizer(peak, threshold, now);
+    const requiredVoiceMs = MIC_MIN_VOICE_MS + (noise === 2 ? 180 : (noise === 1 ? 80 : 0));
+    if (peak > threshold) {
+      recVoiceMs += elapsed;
+      recCurrentVoiceRunMs += elapsed;
+      recLongestVoiceRunMs = Math.max(recLongestVoiceRunMs,recCurrentVoiceRunMs);
+      recPeakLevel = Math.max(recPeakLevel,peak);
+      if (peak >= threshold * 1.5) recStrongVoiceMs += elapsed;
+      const minRunMs = Math.max(180,Math.round(requiredVoiceMs * 2 / 3));
+      const shaped = recStrongVoiceMs >= 70 || recPeakLevel >= threshold * 2 || recLongestVoiceRunMs >= requiredVoiceMs + 140;
+      recHadSpeech = recVoiceMs >= requiredVoiceMs && recLongestVoiceRunMs >= minRunMs && shaped;
+      recSilentSince = 0;
+      restoreMicButton();
+    } else if (recHadSpeech) {
+      recCurrentVoiceRunMs = 0;
+      if (!recSilentSince) recSilentSince = now;
+      showCountdown(now);
+      if (now - recSilentSince > PTT_SILENCE_MS) stopRecording();
+    } else {
+      recCurrentVoiceRunMs = 0;
+      if (now - recStartedAt > MIC_NO_SPEECH_MS) stopRecording();
+    }
+    if (now - recStartedAt > PTT_MAX_RECORDING_MS) stopRecording();
+  }
+
+  function signalLevel(data) {
+    let sum=0,peak=0;
+    for(let i=0;i<data.length;i++){const sample=data[i],abs=Math.abs(sample);if(abs>peak)peak=abs;sum+=sample*sample;}
+    return {rms:Math.sqrt(sum/Math.max(1,data.length)),peak};
+  }
+
+  function showCountdown(now) {
+    if (!activeMicButton || !recSilentSince) return;
+    const remaining = PTT_SILENCE_MS - (now - recSilentSince);
+    if (remaining <= 0) return;
+    const left = Math.max(1,Math.ceil(remaining / 1000));
+    activeMicButton.classList.add('counting');
+    const counter = activeMicButton.querySelector('.countdown');
+    if (counter) counter.textContent = left;
+  }
+
+  function restoreMicButton() {
+    if (!activeMicButton) return;
+    activeMicButton.classList.remove('counting');
+    if (activeMicButton.querySelector('.mic-orb')) return;
+    if (activeMicButton.id === 'shopMic') {
+      activeMicButton.innerHTML = '<span class="mic-language"><img class="mic-flag" src="' + flagPath(TURKISH) + '" alt=""><strong class="mic-code">TR</strong></span><span class="mic-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="mic-orb"><svg class="mic-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/></svg></span><span class="mic-route" id="shopRoute">Türkçe → ' + escapeHtml(customerLanguage.tr) + '</span><span class="mic-countdown"><span class="countdown">2</span><span class="countdown-label">Kapanıyor</span></span>';
+    } else {
+      activeMicButton.innerHTML = '<span class="mic-language"><img class="mic-flag" id="customerMicFlag" src="' + flagPath(customerLanguage) + '" alt=""><strong class="mic-code" id="customerMicCode">' + escapeHtml(customerLanguage.code.toUpperCase()) + '</strong></span><span class="mic-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="mic-orb"><svg class="mic-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/></svg></span><span class="mic-route" id="customerRoute">' + escapeHtml(customerLanguage.tr) + ' → Türkçe</span><span class="mic-countdown"><span class="countdown">2</span><span class="countdown-label">Kapanıyor</span></span>';
+    }
+  }
+
+  function stopRecording() {
+    if (recorder && recorder.state === 'recording') {
+      try { recorder.stop(); } catch {}
+    }
+  }
+
+  async function finishRecording() {
+    const chunks = recChunks.slice();
+    const sampleRate = recSampleRate;
+    const accepted = recHadSpeech && recVoiceMs >= MIC_MIN_VOICE_MS && chunks.length;
+    const sourceLanguage = activeSourceLanguage;
+    const targetLanguage = activeTargetLanguage;
+    cleanupRecording();
+    if (!accepted) {
+      if (!noteNoSpeechStop()) setStatus('Ses algılanmadı, tekrar deneyin', 'idle');
+      return;
+    }
+    const blob = makeWav(chunks,sampleRate);
+    if (blob.size < MIN_AUDIO_BLOB_SIZE) {
+      if (!noteNoSpeechStop()) setStatus('Ses algılanmadı, tekrar deneyin', 'idle');
+      return;
+    }
+    resetNoSpeechStops();
+    jobs.push({blob,sourceLanguage,targetLanguage,createdAt:Date.now()});
+    setStatus('Konuşma sıraya alındı', 'working');
+    updateQueueText();
+    processQueue();
+  }
+
+  function cleanupRecording() {
+    try { if(recProcessor){recProcessor.onaudioprocess=null;recProcessor.disconnect();} } catch {}
+    try { if(recGain)recGain.disconnect(); } catch {}
+    try { if(recNode)recNode.disconnect(); } catch {}
+    try { if(recStream)recStream.getTracks().forEach((track) => track.stop()); } catch {}
+    try { if(recAudioCtx && recAudioCtx.state !== 'closed')recAudioCtx.close(); } catch {}
+    if (activeMicButton) {
+      activeMicButton.classList.remove('recording','counting');
+      activeMicButton.style.removeProperty('--voice-scale');
+      activeMicButton.querySelectorAll('.mic-wave i').forEach((bar) => { bar.style.transform='';bar.style.opacity=''; });
+      activeMicButton.parentElement?.classList.remove('has-active');
+      restoreMicButton();
+    }
+    recorder=null;recStream=null;recAudioCtx=null;recNode=null;recProcessor=null;recGain=null;activeMicButton=null;
+    releaseWakeLock();
+    updateQueueText();
+  }
+
+  function makeWav(chunks,sampleRate) {
+    const valid=chunks.filter((chunk)=>chunk&&chunk.length);
+    const sourceTotal=valid.reduce((sum,chunk)=>sum+chunk.length,0);
+    const source=new Float32Array(sourceTotal);let sourceOffset=0;
+    for(const chunk of valid){source.set(chunk,sourceOffset);sourceOffset+=chunk.length;}
+    const sourceRate=Math.round(sampleRate||48000),targetRate=16000;
+    let samples=source;
+    if(sourceRate!==targetRate&&source.length){
+      const ratio=sourceRate/targetRate,targetLength=Math.max(1,Math.floor(source.length/ratio));
+      const downsampled=new Float32Array(targetLength);
+      for(let i=0;i<targetLength;i++){
+        const start=Math.floor(i*ratio),end=Math.min(source.length,Math.max(start+1,Math.floor((i+1)*ratio)));
+        let sum=0;for(let j=start;j<end;j++)sum+=source[j];downsampled[i]=sum/Math.max(1,end-start);
+      }
+      samples=downsampled;
+    }
+    const total=samples.length,buffer=new ArrayBuffer(44+total*2),view=new DataView(buffer);
+    const ascii=(offset,text)=>{for(let i=0;i<text.length;i++)view.setUint8(offset+i,text.charCodeAt(i));};
+    ascii(0,'RIFF');view.setUint32(4,36+total*2,true);ascii(8,'WAVE');ascii(12,'fmt ');view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,1,true);view.setUint32(24,targetRate,true);view.setUint32(28,targetRate*2,true);view.setUint16(32,2,true);view.setUint16(34,16,true);ascii(36,'data');view.setUint32(40,total*2,true);
+    let offset=44;for(let i=0;i<samples.length;i++){const sample=Math.max(-1,Math.min(1,samples[i]));view.setInt16(offset,sample<0?sample*0x8000:sample*0x7fff,true);offset+=2;}
+    return new Blob([buffer],{type:'audio/wav'});
+  }
+
+  function blobToBase64(blob) {
+    return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||'').split(',')[1]||'');reader.onerror=()=>reject(new Error('Ses okunamadı'));reader.readAsDataURL(blob);});
+  }
+
+  async function processQueue() {
+    if (processing || !jobs.length) return;
+    processing = true;
+    const job = jobs.shift();
+    updateQueueText();
+    try {
+      setStatus('Ses yazıya çevriliyor', 'working');
+      const audioBase64 = await blobToBase64(job.blob);
+      const transcript = await serverCall('transcribe', {
+        audioBase64,mime:job.blob.type || 'audio/wav',sourceLanguage:job.sourceLanguage.code,
+        transcribeEngine:settings.transcribeEngine
+      }, 22000);
+      const sourceText = String(transcript.text || '').trim();
+      if (!sourceText) throw new Error('Ses metne çevrilemedi');
+      setStatus('Çeviri hazırlanıyor', 'working');
+      const translated = await serverCall('translate', {
+        text:sourceText,sourceLanguage:job.sourceLanguage.code,targetLanguage:job.targetLanguage.code
+      }, 40000);
+      const targetText = String(translated.translation || '').trim();
+      if (!targetText) throw new Error('Çeviri boş döndü');
+      const turn = {sourceText,targetText,sourceCode:job.sourceLanguage.code,targetCode:job.targetLanguage.code,ts:Date.now()};
+      renderTurn(turn,true);
+      saveHistory(turn);
+      setStatus('Çeviri tamamlandı', 'done');
+      if (settings.autoSpeak) await speakPhoneTts(targetText,job.targetLanguage);
+    } catch (error) {
+      const message = String(error && error.message || error || 'İşlem başarısız');
+      setStatus(message, 'error');
+      renderError(message);
+    } finally {
+      processing = false;
+      updateQueueText();
+      if (jobs.length) processQueue();
+      else setTimeout(() => { if (!recorder && !processing) setStatus('Hazır','idle'); }, 1300);
+    }
+  }
+
+  function languageByCode(code) { return code === 'tr' ? TURKISH : findLanguage(code) || {code,tr:code,native:code,flag:'🌐',locale:code}; }
+
+  function renderTurn(turn,scroll=false) {
+    $('emptyState')?.remove();
+    const source = languageByCode(turn.sourceCode),target=languageByCode(turn.targetCode);
+    const card=document.createElement('article');card.className='turn';
+    const time=new Date(Number(turn.ts)||Date.now()).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+    card.innerHTML='<div class="turn-head"><img class="flag" src="'+flagPath(source)+'" alt=""><span>'+escapeHtml(source.tr)+'</span><span class="turn-time">'+time+'</span></div><div class="turn-source">'+escapeHtml(turn.sourceText)+'</div><div class="turn-divider"></div><div class="turn-head turn-target-head"><img class="flag" src="'+flagPath(target)+'" alt=""><span>'+escapeHtml(target.tr)+'</span></div><div class="turn-target">'+escapeHtml(turn.targetText)+'</div>';
+    $('transcript').appendChild(card);
+    if(scroll)setTimeout(()=>$('transcript').scrollTo({top:$('transcript').scrollHeight,behavior:'smooth'}),0);
+  }
+
+  function renderError(message) {
+    $('emptyState')?.remove();
+    const card=document.createElement('article');card.className='turn error';
+    card.innerHTML='<div class="turn-head"><span class="flag">!</span><span>İşlem tamamlanamadı</span></div><div class="turn-target">'+escapeHtml(message)+'</div>';
+    $('transcript').appendChild(card);$('transcript').scrollTop=$('transcript').scrollHeight;
+  }
+
+  function readHistory() {
+    try { const value=JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');return Array.isArray(value)?value.slice(-30):[]; } catch { return []; }
+  }
+
+  function saveHistory(turn) {
+    const history=readHistory();history.push(turn);localStorage.setItem(HISTORY_KEY,JSON.stringify(history.slice(-30)));
+  }
+
+  function restoreHistory() { readHistory().forEach((turn)=>renderTurn(turn,false)); }
+
+  async function requestWakeLock() { try { if('wakeLock'in navigator)wakeLock=await navigator.wakeLock.request('screen'); } catch {} }
+  function releaseWakeLock(){try{wakeLock?.release();}catch{}wakeLock=null;}
+
+  function currentVoices(){try{return speechSynthesis.getVoices?.()||[];}catch{return[];}}
+  function pickVoice(language){const prefix=language.locale.toLowerCase().split('-')[0];return currentVoices().find((voice)=>String(voice.lang||'').toLowerCase()===language.locale.toLowerCase())||currentVoices().find((voice)=>String(voice.lang||'').toLowerCase().startsWith(prefix))||null;}
+  function waitForVoices(timeoutMs=1000){if(currentVoices().length)return Promise.resolve(currentVoices());return new Promise((resolve)=>{const started=Date.now();const timer=setInterval(()=>{if(currentVoices().length||Date.now()-started>timeoutMs){clearInterval(timer);resolve(currentVoices());}},80);});}
+
+  function unlockPhoneTts(){
+    if(!('speechSynthesis'in window))return;
+    try{const utterance=new SpeechSynthesisUtterance('Hazır');utterance.lang='tr-TR';utterance.volume=.01;speechSynthesis.speak(utterance);}catch{}
+  }
+
+  function cancelSpeech(){speechToken++;pendingSpeech=null;try{speechSynthesis.cancel();}catch{}phoneTtsUtterance=null;}
+
+  async function speakPhoneTts(text,language,fromGesture=false){
+    text=String(text||'').trim();if(!text||!('speechSynthesis'in window))return false;
+    const token=++speechToken;
+    await waitForVoices(900);
+    if(token!==speechToken)return false;
+    try{speechSynthesis.cancel();}catch{}
+    await new Promise((resolve)=>setTimeout(resolve,45));
+    return new Promise((resolve)=>{
+      let finished=false,started=false;
+      const finish=(ok,defer=false)=>{if(finished)return;finished=true;clearTimeout(startTimer);clearTimeout(endTimer);if(token===speechToken){phoneTtsUtterance=null;if(defer)pendingSpeech={text,language,queuedAt:Date.now()};}resolve(ok);};
+      const utterance=new SpeechSynthesisUtterance(text);phoneTtsUtterance=utterance;utterance.lang=language.locale;utterance.rate=language.code==='vi'?.95:1;const voice=pickVoice(language);if(voice)utterance.voice=voice;
+      utterance.onstart=()=>{started=true;};utterance.onend=()=>finish(true);utterance.onerror=(event)=>{const reason=String(event?.error||'');const blocked=/not-allowed|notallowed|audio-busy|unknown/i.test(reason);finish(false,blocked&&!fromGesture);if(blocked)showToast('Ses hazır. Çalmak için ekrana dokunun.');};
+      const startTimer=setTimeout(()=>{if(!started&&!speechSynthesis.speaking){try{speechSynthesis.cancel();}catch{}finish(false,true);showToast('Ses hazır. Çalmak için ekrana dokunun.');}},2600);
+      const endTimer=setTimeout(()=>{try{speechSynthesis.cancel();}catch{}finish(false);},Math.max(12000,Math.min(90000,text.length*260+8000)));
+      try{speechSynthesis.speak(utterance);}catch{finish(false,true);}
+    });
+  }
+
+  function syncSettingsUi(){
+    $('autoSpeakSwitch').classList.toggle('on',!!settings.autoSpeak);
+    document.querySelectorAll('[data-noise]').forEach((button)=>button.classList.toggle('on',Number(button.dataset.noise)===Number(settings.noiseLevel)));
+  }
+
+  function registerEvents(){
+    $('shopMic').addEventListener('click',()=>startRecording(TURKISH,customerLanguage,$('shopMic')));
+    $('customerMic').addEventListener('click',()=>startRecording(customerLanguage,TURKISH,$('customerMic')));
+    $('customerLanguageBtn').addEventListener('click',()=>openModal('languageModal'));
+    $('settingsBtn').addEventListener('click',()=>openModal('settingsModal'));
+    $('languageSearch').addEventListener('input',(event)=>renderLanguageList(event.target.value));
+    document.querySelectorAll('[data-close]').forEach((button)=>button.addEventListener('click',()=>closeModal(button.dataset.close)));
+    document.querySelectorAll('.modal-backdrop').forEach((backdrop)=>backdrop.addEventListener('click',(event)=>{if(event.target===backdrop)closeModal(backdrop.id);}));
+    $('autoSpeakSwitch').addEventListener('click',()=>{settings.autoSpeak=!settings.autoSpeak;if(!settings.autoSpeak)cancelSpeech();saveSettings();showToast(settings.autoSpeak?'Otomatik ses açık':'Otomatik ses kapalı');});
+    document.querySelectorAll('[data-noise]').forEach((button)=>button.addEventListener('click',()=>{settings.noiseLevel=Number(button.dataset.noise);saveSettings();showToast(button.textContent+' aktif');}));
+    $('clearHistoryBtn').addEventListener('click',()=>{localStorage.removeItem(HISTORY_KEY);$('transcript').innerHTML='<div class="empty" id="emptyState"><div><div class="empty-mark"><img class="empty-brand" src="./diamond.svg" alt=""></div><strong>Görüşmeye hazır</strong><span>Konuşmak için kendi tarafınızdaki<br>mikrofon düğmesine dokunun.</span></div></div>';closeModal('settingsModal');showToast('Geçmiş temizlendi');});
+    $('logoutBtn').addEventListener('click',()=>{localStorage.removeItem(AUTH_KEY);auth=null;closeModal('settingsModal');$('loginLayer').classList.add('open');});
+    $('loginForm').addEventListener('submit',async(event)=>{event.preventDefault();const button=$('loginBtn'),error=$('loginError');button.disabled=true;button.textContent='Giriş yapılıyor...';error.textContent='';try{await signIn($('passwordInput').value);$('passwordInput').value='';$('loginLayer').classList.remove('open');setStatus('Mikrofon hazır','idle');}catch(e){error.textContent=String(e&&e.message||e||'Giriş başarısız').replace(/INVALID_LOGIN_CREDENTIALS|INVALID_PASSWORD|EMAIL_NOT_FOUND/g,'Şifre hatalı');}finally{button.disabled=false;button.textContent='Giriş yap';}});
+    document.addEventListener('pointerdown',()=>{if(pendingSpeech&&Date.now()-pendingSpeech.queuedAt<60000){const item=pendingSpeech;pendingSpeech=null;speakPhoneTts(item.text,item.language,true);}},{capture:true,passive:true});
+    document.addEventListener('click',(event)=>{if(event.target.closest('button'))playClick();},{capture:true,passive:true});
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden&&auth)refreshAuth(false).catch(()=>{});});
+    window.addEventListener('beforeunload',()=>{stopRecording();releaseWakeLock();});
+  }
+
+  async function boot(){
+    registerEvents();updateLanguageUi();syncSettingsUi();restoreHistory();
+    if('speechSynthesis'in window){try{speechSynthesis.getVoices();speechSynthesis.addEventListener?.('voiceschanged',()=>currentVoices());}catch{}}
+    if(auth){try{await refreshAuth(false);$('loginLayer').classList.remove('open');setStatus('Mikrofon hazır','idle');}catch{localStorage.removeItem(AUTH_KEY);auth=null;}}
+    if(!auth)$('loginLayer').classList.add('open');
+    if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  }
+
+  boot();
+  </script>
+</body>
+</html>
